@@ -62,42 +62,116 @@
             transform: rotateY(180deg);
         }
     </style>
+
+    <!-- Core Libraries (UMD) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react-router@6.11.2/dist/umd/react-router.production.min.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6.11.2/dist/umd/react-router-dom.production.min.js"></script>
+    
+    <!-- Icons and Animations -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide-react@latest"></script>
+    <script src="https://unpkg.com/framer-motion@10.12.16/dist/framer-motion.js"></script>
+    
+    <!-- State Management -->
+    <script src="https://cdn.jsdelivr.net/npm/zustand@4.3.8/umd/index.js"></script>
+    
+    <!-- Google GenAI (Browser Bundle) -->
+    <script src="https://cdn.jsdelivr.net/npm/@google/genai@0.2.1/dist/index.min.js"></script>
 </head>
 <body class="bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
-    <div id="root"></div>
+    <div id="root">
+        <div class="flex items-center justify-center min-h-screen">
+            <div class="flex flex-col items-center gap-4">
+                <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <p class="text-neutral-500 font-black uppercase tracking-widest text-xs">Uygulama Yükleniyor...</p>
+            </div>
+        </div>
+    </div>
 
-    <script type="importmap">
-    {
-        "imports": {
-            "react": "https://esm.sh/react@18.2.0",
-            "react-dom": "https://esm.sh/react-dom@18.2.0",
-            "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
-            "react-router-dom": "https://esm.sh/react-router-dom@6.11.2",
-            "lucide-react": "https://esm.sh/lucide-react@0.244.0",
-            "framer-motion": "https://esm.sh/framer-motion@10.12.16",
-            "zustand": "https://esm.sh/zustand@4.3.8",
-            "zustand/middleware": "https://esm.sh/zustand@4.3.8/middleware",
-            "@google/genai": "https://esm.sh/@google/genai@0.2.1"
-        }
-    }
+    <script>
+        window.onerror = function(message, source, lineno, colno, error) {
+            const root = document.getElementById('root');
+            if (root) {
+                root.innerHTML = `
+                    <div style="padding: 24px; color: #ef4444; background: #fef2f2; border: 2px solid #fee2e2; border-radius: 24px; margin: 20px; font-family: 'Inter', sans-serif; max-width: 500px; mx-auto;">
+                        <h1 style="font-size: 20px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.025em;">Uygulama Başlatılamadı</h1>
+                        <p style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Hata: ${message}</p>
+                        <p style="font-size: 12px; color: #991b1b; opacity: 0.7;">Konum: ${source}:${lineno}:${colno}</p>
+                        ${error ? `<pre style="font-size: 11px; margin-top: 16px; overflow: auto; background: #ffffff; padding: 16px; border-radius: 16px; border: 1px solid #fee2e2; color: #450a0a;">${error.stack}</pre>` : ''}
+                        <button onclick="location.reload()" style="margin-top: 20px; width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">Tekrar Dene</button>
+                    </div>
+                `;
+            }
+            return false;
+        };
     </script>
 
-    <script type="module">
-        import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-        import { createRoot } from 'react-dom/client';
-        import { HashRouter, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-        import { 
-            Home, BookOpen, CheckCircle, Settings as SettingsIcon, 
-            Edit3, AlertTriangle, BrainCircuit, Loader2, 
+    <script type="text/babel">
+        const { useState, useEffect, useMemo, useRef, useCallback } = React;
+        const { createRoot } = ReactDOM;
+        const { HashRouter, Routes, Route, Link, useNavigate, useLocation, Navigate, Outlet } = ReactRouterDOM;
+        const { 
+            Home: HomeIcon, BookOpen, CheckCircle, Settings: SettingsIcon, 
+            Pencil, AlertTriangle, BrainCircuit, Loader2, 
             Plus, X, Play, Volume2, ChevronRight, ChevronLeft,
             RotateCcw, Trash2, Save, Moon, Sun, Languages,
             Trophy, Star, History, Search, Info, Share2,
             ExternalLink, Heart, Clock, GraduationCap, ArrowRight
-        } from 'lucide-react';
-        import { motion, AnimatePresence } from 'framer-motion';
-        import { create } from 'zustand';
-        import { persist } from 'zustand/middleware';
-        import { GoogleGenAI, Type } from '@google/genai';
+        } = LucideReact;
+        const { motion, AnimatePresence } = Motion;
+        const { create } = zustand;
+        const { persist } = zustand.middleware;
+        
+        // Google GenAI Global fallback or Fetch-based implementation
+        let GoogleGenAI = window.googleGenAI ? window.googleGenAI.GoogleGenAI : null;
+        let Type = window.googleGenAI ? window.googleGenAI.Type : { OBJECT: "OBJECT", STRING: "STRING", ARRAY: "ARRAY" };
+
+        if (!GoogleGenAI) {
+            console.warn("Google GenAI SDK not found, using fetch fallback.");
+            GoogleGenAI = class {
+                constructor({ apiKey }) { this.apiKey = apiKey; }
+                get models() {
+                    return {
+                        generateContent: async (params) => {
+                            const model = params.model || "gemini-3-flash-preview";
+                            const isTTS = model.includes("tts");
+                            const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
+                            const url = `${baseUrl}/${model}:generateContent?key=${this.apiKey}`;
+                            
+                            const body = {
+                                contents: Array.isArray(params.contents) ? params.contents : 
+                                         (typeof params.contents === 'string' ? [{ parts: [{ text: params.contents }] }] : [params.contents]),
+                                generationConfig: params.config || {}
+                            };
+
+                            // Add tools if present
+                            if (params.tools) body.tools = params.tools;
+
+                            const response = await fetch(url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(body)
+                            });
+                            
+                            const data = await response.json();
+                            if (data.error) throw new Error(data.error.message);
+
+                            return {
+                                text: data.candidates?.[0]?.content?.parts?.[0]?.text || "",
+                                candidates: data.candidates,
+                                // Helper for TTS modality
+                                get audio() {
+                                    return data.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+                                }
+                            };
+                        }
+                    };
+                }
+            };
+        }
 
         // --- UTILS ---
         const cn = (...classes) => classes.filter(Boolean).join(' ');
@@ -519,7 +593,7 @@
             const t = useTranslation(settings.nativeLanguage);
 
             const navItems = [
-                { path: '/', icon: Home, label: t('home') },
+                { path: '/', icon: HomeIcon, label: t('home') },
                 { path: '/session', icon: BookOpen, label: t('learn') },
                 { path: '/difficult-words', icon: AlertTriangle, label: t('difficultWords') },
                 { path: '/test', icon: BrainCircuit, label: t('test') },

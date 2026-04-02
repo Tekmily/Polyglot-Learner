@@ -1,1356 +1,1553 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polyglot Learner - Full Application</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polyglot Learner - Full Application</title>
 
-        .perspective-1000 {
-            perspective: 1000px;
-        }
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ["Inter", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
 
-        .pb-safe {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .hide-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-        /* Flashcard Animations */
-        .flashcard-inner {
-            transition: transform 0.6s;
-            transform-style: preserve-3d;
-        }
-        .flashcard-flipped {
-            transform: rotateY(180deg);
-        }
-        .flashcard-front, .flashcard-back {
-            backface-visibility: hidden;
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .flashcard-back {
-            transform: rotateY(180deg);
-        }
-    </style>
+    .perspective-1000 {
+      perspective: 1000px;
+    }
 
-    <!-- Core Libraries (UMD) -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/react-router@6.11.2/dist/umd/react-router.production.min.js"></script>
-    <script src="https://unpkg.com/react-router-dom@6.11.2/dist/umd/react-router-dom.production.min.js"></script>
-    
-    <!-- Icons and Animations -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script src="https://unpkg.com/lucide-react@latest"></script>
-    <script src="https://unpkg.com/framer-motion@10.12.16/dist/framer-motion.js"></script>
-    
-    <!-- State Management -->
-    <script src="https://cdn.jsdelivr.net/npm/zustand@4.3.8/umd/index.js"></script>
-    
-    <!-- Google GenAI (Browser Bundle) -->
-    <script src="https://cdn.jsdelivr.net/npm/@google/genai@0.2.1/dist/index.min.js"></script>
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .flashcard-inner {
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+    }
+
+    .flashcard-flipped {
+      transform: rotateY(180deg);
+    }
+
+    .flashcard-front, .flashcard-back {
+      backface-visibility: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .flashcard-back {
+      transform: rotateY(180deg);
+    }
+  </style>
+
+  <!-- Core Libraries -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://unpkg.com/react-router-dom@6.11.2/dist/umd/react-router-dom.production.min.js"></script>
+
+  <!-- Optional Libraries -->
+  <script src="https://unpkg.com/framer-motion@10.12.16/dist/framer-motion.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/zustand@4.3.8/umd/index.production.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@google/genai@0.2.1/dist/index.min.js"></script>
 </head>
 <body class="bg-neutral-50 dark:bg-neutral-900 transition-colors duration-300">
-    <div id="root">
-        <div class="flex items-center justify-center min-h-screen">
-            <div class="flex flex-col items-center gap-4">
-                <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                <p class="text-neutral-500 font-black uppercase tracking-widest text-xs">Uygulama Yükleniyor...</p>
-            </div>
-        </div>
+  <div id="root">
+    <div class="flex items-center justify-center min-h-screen">
+      <div class="flex flex-col items-center gap-4">
+        <div class="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-neutral-500 font-black uppercase tracking-widest text-xs">Uygulama Yükleniyor...</p>
+      </div>
     </div>
+  </div>
 
-    <script>
-        window.onerror = function(message, source, lineno, colno, error) {
-            const root = document.getElementById('root');
-            if (root) {
-                root.innerHTML = `
-                    <div style="padding: 24px; color: #ef4444; background: #fef2f2; border: 2px solid #fee2e2; border-radius: 24px; margin: 20px; font-family: 'Inter', sans-serif; max-width: 500px; mx-auto;">
-                        <h1 style="font-size: 20px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.025em;">Uygulama Başlatılamadı</h1>
-                        <p style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Hata: ${message}</p>
-                        <p style="font-size: 12px; color: #991b1b; opacity: 0.7;">Konum: ${source}:${lineno}:${colno}</p>
-                        ${error ? `<pre style="font-size: 11px; margin-top: 16px; overflow: auto; background: #ffffff; padding: 16px; border-radius: 16px; border: 1px solid #fee2e2; color: #450a0a;">${error.stack}</pre>` : ''}
-                        <button onclick="location.reload()" style="margin-top: 20px; width: 100%; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;">Tekrar Dene</button>
-                    </div>
-                `;
-            }
-            return false;
-        };
-    </script>
+  <script>
+    window.onerror = function(message, source, lineno, colno, error) {
+      const root = document.getElementById("root");
+      if (root) {
+        root.innerHTML = `
+          <div style="padding:24px;color:#ef4444;background:#fef2f2;border:2px solid #fee2e2;border-radius:24px;margin:20px;font-family:'Inter',sans-serif;max-width:700px;">
+            <h1 style="font-size:20px;font-weight:900;margin-bottom:12px;">Uygulama Başlatılamadı</h1>
+            <p style="font-size:14px;font-weight:600;margin-bottom:8px;">Hata: ${String(message)}</p>
+            <p style="font-size:12px;color:#991b1b;opacity:0.8;">Konum: ${String(source)}:${lineno}:${colno}</p>
+            ${error && error.stack ? `<pre style="font-size:11px;margin-top:16px;overflow:auto;background:#fff;padding:16px;border-radius:16px;border:1px solid #fee2e2;color:#450a0a;">${String(error.stack)}</pre>` : ""}
+            <button onclick="location.reload()" style="margin-top:20px;width:100%;padding:12px;background:#ef4444;color:white;border:none;border-radius:12px;font-weight:900;cursor:pointer;">Tekrar Dene</button>
+          </div>
+        `;
+      }
+      return false;
+    };
+  </script>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef, useCallback } = React;
-        const { createRoot } = ReactDOM;
-        const { HashRouter, Routes, Route, Link, useNavigate, useLocation, Navigate, Outlet } = ReactRouterDOM;
-        const { 
-            Home: HomeIcon, BookOpen, CheckCircle, Settings: SettingsIcon, 
-            Pencil, AlertTriangle, BrainCircuit, Loader2, 
-            Plus, X, Check, Play, Volume2, ChevronRight, ChevronLeft,
-            RotateCcw, Trash2, Save, Moon, Sun, Languages,
-            Trophy, Star, History, Search, Info, Share2,
-            ExternalLink, Heart, Clock, GraduationCap, ArrowRight
-        } = LucideReact;
-        const { motion, AnimatePresence } = Motion;
-        const { create } = zustand;
-        const { persist } = zustand.middleware;
-        
-        // Google GenAI Global fallback or Fetch-based implementation
-        let GoogleGenAI = window.googleGenAI ? window.googleGenAI.GoogleGenAI : null;
-        let Type = window.googleGenAI ? window.googleGenAI.Type : { OBJECT: "OBJECT", STRING: "STRING", ARRAY: "ARRAY" };
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+    const { createRoot } = ReactDOM;
+    const {
+      HashRouter,
+      Routes,
+      Route,
+      Link,
+      useNavigate,
+      useLocation,
+      Navigate,
+      Outlet
+    } = ReactRouterDOM;
 
-        if (!GoogleGenAI) {
-            console.warn("Google GenAI SDK not found, using fetch fallback.");
-            GoogleGenAI = class {
-                constructor({ apiKey }) { this.apiKey = apiKey; }
-                get models() {
-                    return {
-                        generateContent: async (params) => {
-                            const model = params.model || "gemini-3-flash-preview";
-                            const isTTS = model.includes("tts");
-                            const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models";
-                            const url = `${baseUrl}/${model}:generateContent?key=${this.apiKey}`;
-                            
-                            const body = {
-                                contents: Array.isArray(params.contents) ? params.contents : 
-                                         (typeof params.contents === 'string' ? [{ parts: [{ text: params.contents }] }] : [params.contents]),
-                                generationConfig: params.config || {}
-                            };
+    /* --------------------------------------------------
+       SAFE FALLBACKS
+    -------------------------------------------------- */
+    const MotionLib = window.Motion || {};
+    const motion = MotionLib.motion || new Proxy({}, {
+      get: (_, tag) => {
+        return React.forwardRef((props, ref) => React.createElement(tag, { ...props, ref }, props.children));
+      }
+    });
+    const AnimatePresence = MotionLib.AnimatePresence || (({ children }) => <>{children}</>);
 
-                            // Add tools if present
-                            if (params.tools) body.tools = params.tools;
+    const createZustand = window.zustand?.create;
+    const persistMiddleware = window.zustand?.persist || ((config) => config);
 
-                            const response = await fetch(url, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(body)
-                            });
-                            
-                            const data = await response.json();
-                            if (data.error) throw new Error(data.error.message);
+    const cn = (...classes) => classes.filter(Boolean).join(" ");
 
-                            return {
-                                text: data.candidates?.[0]?.content?.parts?.[0]?.text || "",
-                                candidates: data.candidates,
-                                // Helper for TTS modality
-                                get audio() {
-                                    return data.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-                                }
-                            };
-                        }
-                    };
-                }
+    /* --------------------------------------------------
+       SIMPLE SVG ICONS
+    -------------------------------------------------- */
+    const IconBase = ({ size = 24, strokeWidth = 2, className = "", children, ...props }) => (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={className}
+        {...props}
+      >
+        {children}
+      </svg>
+    );
+
+    const HomeIcon = (p) => <IconBase {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></IconBase>;
+    const BookOpen = (p) => <IconBase {...p}><path d="M3 6.5C3 5.12 4.12 4 5.5 4H11v16H5.5A2.5 2.5 0 0 1 3 17.5z" /><path d="M21 6.5C21 5.12 19.88 4 18.5 4H13v16h5.5a2.5 2.5 0 0 0 2.5-2.5z" /></IconBase>;
+    const CheckCircle = (p) => <IconBase {...p}><circle cx="12" cy="12" r="9" /><path d="m9 12 2 2 4-4" /></IconBase>;
+    const SettingsIcon = (p) => <IconBase {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-.4-1.1 1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2.8a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.1-.4 1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06A2 2 0 0 1 7.03 3.4l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V2.8a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 .4 1.1 1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .6 1 1.7 1.7 0 0 0 1.1.4h.1a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.1.4 1.7 1.7 0 0 0-.6 1z" /></IconBase>;
+    const AlertTriangle = (p) => <IconBase {...p}><path d="M12 3 22 20H2L12 3z" /><path d="M12 9v4" /><path d="M12 17h.01" /></IconBase>;
+    const BrainCircuit = (p) => <IconBase {...p}><path d="M9.5 3a3.5 3.5 0 0 0-3.5 3.5V7a2 2 0 0 0-2 2v1a2 2 0 0 0 2 2 3 3 0 0 0 3 3h1" /><path d="M14.5 3A3.5 3.5 0 0 1 18 6.5V7a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2 3 3 0 0 1-3 3h-1" /><path d="M12 6v12" /><path d="M9 12h6" /></IconBase>;
+    const Loader2 = (p) => <IconBase {...p} className={cn("animate-spin", p.className)}><path d="M21 12a9 9 0 1 1-6.22-8.56" /></IconBase>;
+    const Plus = (p) => <IconBase {...p}><path d="M12 5v14" /><path d="M5 12h14" /></IconBase>;
+    const X = (p) => <IconBase {...p}><path d="M18 6 6 18" /><path d="m6 6 12 12" /></IconBase>;
+    const Check = (p) => <IconBase {...p}><path d="M20 6 9 17l-5-5" /></IconBase>;
+    const Play = (p) => <IconBase {...p}><polygon points="8 5 19 12 8 19 8 5" fill="currentColor" stroke="none" /></IconBase>;
+    const Volume2 = (p) => <IconBase {...p}><path d="M11 5 6 9H3v6h3l5 4V5z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 6a9 9 0 0 1 0 12" /></IconBase>;
+    const RotateCcw = (p) => <IconBase {...p}><path d="M3 2v6h6" /><path d="M3 8a9 9 0 1 0 3-4.7L3 8z" /></IconBase>;
+    const Trash2 = (p) => <IconBase {...p}><path d="M3 6h18" /><path d="M8 6V4h8v2" /><path d="M19 6l-1 14H6L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /></IconBase>;
+    const Save = (p) => <IconBase {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><path d="M17 21v-8H7v8" /><path d="M7 3v5h8" /></IconBase>;
+    const Languages = (p) => <IconBase {...p}><path d="M5 8h8" /><path d="M4 12h6" /><path d="M10 4c0 6-3 10-6 12" /><path d="M14 6h6" /><path d="M17 6c0 6 2 10 4 12" /><path d="M14 18h6" /></IconBase>;
+    const Trophy = (p) => <IconBase {...p}><path d="M8 21h8" /><path d="M12 17v4" /><path d="M7 4h10v5a5 5 0 0 1-10 0V4z" /><path d="M17 5h3v2a4 4 0 0 1-4 4" /><path d="M7 5H4v2a4 4 0 0 0 4 4" /></IconBase>;
+    const Star = (p) => <IconBase {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21 12 17.77 5.82 21 7 14.14 2 9.27 8.91 8.26 12 2" /></IconBase>;
+    const Search = (p) => <IconBase {...p}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></IconBase>;
+    const Info = (p) => <IconBase {...p}><circle cx="12" cy="12" r="9" /><path d="M12 10v6" /><path d="M12 7h.01" /></IconBase>;
+
+    /* --------------------------------------------------
+       SPEECH + HELPERS
+    -------------------------------------------------- */
+    const speak = (text, lang = "de-DE") => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = lang;
+        utterance.rate = 0.8;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utterance);
+      } catch (e) {
+        console.warn("Speech synthesis unavailable", e);
+      }
+    };
+
+    const highlightWord = (sentence, wordsToHighlight, color) => {
+      if (!sentence || !wordsToHighlight) return sentence;
+      const words = Array.isArray(wordsToHighlight) ? wordsToHighlight : [wordsToHighlight];
+      const escapedWords = words
+        .filter(Boolean)
+        .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+        .join("|");
+
+      if (!escapedWords) return sentence;
+
+      const regex = new RegExp(`(${escapedWords})`, "gi");
+      const parts = sentence.split(regex);
+
+      return parts.map((part, i) =>
+        regex.test(part)
+          ? React.createElement("span", { key: i, style: { color, fontWeight: "900" } }, part)
+          : part
+      );
+    };
+
+    /* --------------------------------------------------
+       TRANSLATIONS
+    -------------------------------------------------- */
+    const translations = {
+      en: {
+        home: 'Home', learn: 'Learn', learned: 'Learned', settings: 'Settings', review: 'Review', test: 'Test',
+        greeting: 'Hello', readyToLearn: 'Ready to learn?', todaysGoal: "Today's Goal", words: 'Words',
+        totalReps: 'total repetitions', allDone: 'All done for today!', allDoneDesc: 'You can review learned words or start a new session.',
+        startNewSession: 'Start New Session', continueSession: 'Continue Session', startTodaysSession: "Start Today's Session",
+        masteredAll: 'You have mastered all available words.', learnedWordsTitle: 'Learned Words',
+        learnedWordsDesc: 'You have mastered {count} words.', noWordsLearned: 'No words learned yet.',
+        completeSessionToSee: 'Complete a session to see them here.', settingsTitle: 'Settings', settingsDesc: 'Customize your learning experience.',
+        dailyNewWords: 'Daily New Words', dailyNewWordsDesc: 'How many new words to learn each day.',
+        targetRepetitions: 'Target Repetitions', targetRepetitionsDesc: 'How many times you need to repeat a word to master it.',
+        uiLanguage: 'Native Language', learningLanguage: 'Learning Language', userLevel: 'Your Level',
+        testSize: 'Test Size', testLockMessage: 'You must learn at least 10 words to unlock the test screen.',
+        confirmDeleteAll: 'Are you sure you want to delete all learned words?',
+        autoSaved: 'Saved', card: 'Card', swipeToFlip: 'Tap to flip',
+        yes: 'Yes', no: 'No', markDifficult: 'Mark as Difficult',
+        present: 'Present', past: 'Past', future: 'Future',
+        welcomeTitle: 'Welcome to Polyglot Learner', welcomeDesc: 'Please enter your name and start.',
+        yourName: 'Your Name', startLearning: 'Start Learning', difficultWords: 'Difficult Words',
+        noDifficultWords: 'No difficult words yet.', startReview: 'Start Review Session',
+        startTest: 'Start Test', score: 'Score', testComplete: 'Test Complete!', backToHome: 'Back to Home',
+        correctGuess: 'Correct!', wrongGuess: 'Wrong. Added to difficult words.',
+        iKnowThis: 'I know this', completed: 'Completed', yearlyProgress: 'Yearly Progress',
+        saveSettings: 'Save Settings', resetProgress: 'Reset Progress', searchWords: 'Search words...',
+        geminiApiKey: 'Gemini API Key', geminiApiKeyDesc: 'Optional. Enables AI audio features.', checkAnswer: 'Check Answer', riddleHint: 'Hint'
+      },
+      tr: {
+        home: 'Ana Sayfa', learn: 'Öğren', learned: 'Öğrenilenler', settings: 'Ayarlar', review: 'Tekrar', test: 'Test',
+        greeting: 'Merhaba', readyToLearn: 'Öğrenmeye hazır mısın?', todaysGoal: 'Bugünkü Hedef', words: 'Kelime',
+        totalReps: 'toplam tekrar', allDone: 'Bugünlük bu kadar!', allDoneDesc: 'Öğrendiğin kelimeleri gözden geçirebilir veya yeni bir oturum başlatabilirsin.',
+        startNewSession: 'Yeni Oturum Başlat', continueSession: 'Oturuma Devam Et', startTodaysSession: 'Bugünkü Oturumu Başlat',
+        masteredAll: 'Tüm kelimeleri öğrendin.', learnedWordsTitle: 'Öğrenilen Kelimeler',
+        learnedWordsDesc: '{count} kelimeyi öğrendin.', noWordsLearned: 'Henüz öğrenilen kelime yok.',
+        completeSessionToSee: 'Burada görmek için oturumu tamamla.', settingsTitle: 'Ayarlar', settingsDesc: 'Öğrenme deneyimini özelleştir.',
+        dailyNewWords: 'Günlük Yeni Kelime', dailyNewWordsDesc: 'Her gün kaç yeni kelime öğrenilecek.',
+        targetRepetitions: 'Hedef Tekrar', targetRepetitionsDesc: 'Bir kelimeyi öğrenmek için kaç kez tekrar etmen gerekiyor.',
+        uiLanguage: 'Ana Dil', learningLanguage: 'Öğrenilecek Dil', userLevel: 'Seviyen',
+        testSize: 'Test Boyutu', testLockMessage: 'Test ekranını açmak için en az 10 kelime öğrenmelisin.',
+        confirmDeleteAll: 'Tüm ilerlemeyi silmek istediğine emin misin?',
+        autoSaved: 'Kaydedildi', card: 'Kart', swipeToFlip: 'Çevirmek için dokun',
+        yes: 'Evet', no: 'Hayır', markDifficult: 'Zor Olarak İşaretle',
+        present: 'Şimdiki', past: 'Geçmiş', future: 'Gelecek',
+        welcomeTitle: 'Polyglot Learner\'a Hoş Geldin', welcomeDesc: 'Başlamak için adını gir.',
+        yourName: 'Adın', startLearning: 'Öğrenmeye Başla', difficultWords: 'Zor Kelimeler',
+        noDifficultWords: 'Henüz zor kelime yok.', startReview: 'Tekrar Oturumunu Başlat',
+        startTest: 'Teste Başla', score: 'Puan', testComplete: 'Test Tamamlandı!', backToHome: 'Ana Sayfaya Dön',
+        correctGuess: 'Doğru!', wrongGuess: 'Yanlış. Zor kelimelere eklendi.',
+        iKnowThis: 'Biliyorum', completed: 'Tamamlandı', yearlyProgress: 'Yıllık İlerleme',
+        saveSettings: 'Ayarları Kaydet', resetProgress: 'İlerlemeyi Sıfırla', searchWords: 'Kelime ara...',
+        geminiApiKey: 'Gemini API Anahtarı', geminiApiKeyDesc: 'İsteğe bağlı. AI ses özelliği için.', checkAnswer: 'Cevabı Kontrol Et', riddleHint: 'İpucu'
+      }
+    };
+
+    const useTranslation = (lang) => {
+      return (key, params = {}) => {
+        let text = translations[lang]?.[key] || translations.en?.[key] || key;
+        Object.entries(params).forEach(([k, v]) => {
+          text = text.replace(`{${k}}`, v);
+        });
+        return text;
+      };
+    };
+
+    /* --------------------------------------------------
+       SAMPLE WORD DATA
+    -------------------------------------------------- */
+    const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
+
+    const sampleWords = [
+      {
+        id: "haus",
+        color: colors[0],
+        type: "noun",
+        pronunciation: "haus",
+        translations: { en: "house", tr: "ev", de: "Haus" },
+        sentences: {
+          present: { original: "Ich sehe ein Haus.", translated: "Bir ev görüyorum.", blank: "Ich sehe ein _____.", highlights: ["Haus"] },
+          past: { original: "Ich kaufte ein Haus.", translated: "Bir ev aldım.", blank: "Ich kaufte ein _____.", highlights: ["Haus"] },
+          future: { original: "Ich werde ein Haus bauen.", translated: "Bir ev yapacağım.", blank: "Ich werde ein _____ bauen.", highlights: ["Haus"] }
+        }
+      },
+      {
+        id: "lernen",
+        color: colors[1],
+        type: "verb",
+        pronunciation: "ler-nen",
+        translations: { en: "learn", tr: "öğrenmek", de: "lernen" },
+        sentences: {
+          present: { original: "Ich lerne Deutsch.", translated: "Almanca öğreniyorum.", blank: "Ich _____ Deutsch.", highlights: ["lerne"] },
+          past: { original: "Ich lernte gestern viel.", translated: "Dün çok öğrendim.", blank: "Ich _____ gestern viel.", highlights: ["lernte"] },
+          future: { original: "Ich werde mehr lernen.", translated: "Daha fazla öğreneceğim.", blank: "Ich werde mehr _____.", highlights: ["lernen"] }
+        }
+      },
+      {
+        id: "schnell",
+        color: colors[2],
+        type: "adjective",
+        pronunciation: "şnel",
+        translations: { en: "fast", tr: "hızlı", de: "schnell" },
+        sentences: {
+          present: { original: "Das Auto ist schnell.", translated: "Araba hızlıdır.", blank: "Das Auto ist _____.", highlights: ["schnell"] },
+          past: { original: "Der Zug war schnell.", translated: "Tren hızlıydı.", blank: "Der Zug war _____.", highlights: ["schnell"] },
+          future: { original: "Das neue Auto wird schnell sein.", translated: "Yeni araba hızlı olacak.", blank: "Das neue Auto wird _____ sein.", highlights: ["schnell"] }
+        }
+      },
+      {
+        id: "essen",
+        color: colors[3],
+        type: "verb",
+        pronunciation: "es-sın",
+        translations: { en: "eat", tr: "yemek yemek", de: "essen" },
+        sentences: {
+          present: { original: "Wir essen zusammen.", translated: "Birlikte yemek yiyoruz.", blank: "Wir _____ zusammen.", highlights: ["essen"] },
+          past: { original: "Wir aßen im Park.", translated: "Parkta yedik.", blank: "Wir _____ im Park.", highlights: ["aßen"] },
+          future: { original: "Wir werden später essen.", translated: "Daha sonra yiyeceğiz.", blank: "Wir werden später _____.", highlights: ["essen"] }
+        }
+      },
+      {
+        id: "schule",
+        color: colors[4],
+        type: "noun",
+        pronunciation: "şu-le",
+        translations: { en: "school", tr: "okul", de: "Schule" },
+        sentences: {
+          present: { original: "Die Schule ist groß.", translated: "Okul büyük.", blank: "Die _____ ist groß.", highlights: ["Schule"] },
+          past: { original: "Die Schule war alt.", translated: "Okul eskiydi.", blank: "Die _____ war alt.", highlights: ["Schule"] },
+          future: { original: "Die Schule wird renoviert.", translated: "Okul yenilenecek.", blank: "Die _____ wird renoviert.", highlights: ["Schule"] }
+        }
+      },
+      {
+        id: "gehen",
+        color: colors[5],
+        type: "verb",
+        pronunciation: "gey-hın",
+        translations: { en: "go", tr: "gitmek", de: "gehen" },
+        sentences: {
+          present: { original: "Ich gehe nach Hause.", translated: "Eve gidiyorum.", blank: "Ich _____ nach Hause.", highlights: ["gehe"] },
+          past: { original: "Ich ging zu Fuß.", translated: "Yürüyerek gittim.", blank: "Ich _____ zu Fuß.", highlights: ["ging"] },
+          future: { original: "Ich werde morgen gehen.", translated: "Yarın gideceğim.", blank: "Ich werde morgen _____.", highlights: ["gehen"] }
+        }
+      },
+      {
+        id: "sprechen",
+        color: colors[6],
+        type: "verb",
+        pronunciation: "şprehın",
+        translations: { en: "speak", tr: "konuşmak", de: "sprechen" },
+        sentences: {
+          present: { original: "Wir sprechen Deutsch.", translated: "Almanca konuşuyoruz.", blank: "Wir _____ Deutsch.", highlights: ["sprechen"] },
+          past: { original: "Er sprach mit mir.", translated: "Benimle konuştu.", blank: "Er _____ mit mir.", highlights: ["sprach"] },
+          future: { original: "Sie werden später sprechen.", translated: "Daha sonra konuşacaklar.", blank: "Sie werden später _____.", highlights: ["sprechen"] }
+        }
+      },
+      {
+        id: "freund",
+        color: colors[7],
+        type: "noun",
+        pronunciation: "froynt",
+        translations: { en: "friend", tr: "arkadaş", de: "Freund" },
+        sentences: {
+          present: { original: "Mein Freund kommt heute.", translated: "Arkadaşım bugün geliyor.", blank: "Mein _____ kommt heute.", highlights: ["Freund"] },
+          past: { original: "Mein Freund war hier.", translated: "Arkadaşım buradaydı.", blank: "Mein _____ war hier.", highlights: ["Freund"] },
+          future: { original: "Mein Freund wird anrufen.", translated: "Arkadaşım arayacak.", blank: "Mein _____ wird anrufen.", highlights: ["Freund"] }
+        }
+      },
+      {
+        id: "arbeiten",
+        color: colors[0],
+        type: "verb",
+        pronunciation: "ar-bay-tın",
+        translations: { en: "work", tr: "çalışmak", de: "arbeiten" },
+        sentences: {
+          present: { original: "Ich arbeite viel.", translated: "Çok çalışıyorum.", blank: "Ich _____ viel.", highlights: ["arbeite"] },
+          past: { original: "Ich arbeitete gestern.", translated: "Dün çalıştım.", blank: "Ich _____ gestern.", highlights: ["arbeitete"] },
+          future: { original: "Ich werde morgen arbeiten.", translated: "Yarın çalışacağım.", blank: "Ich werde morgen _____.", highlights: ["arbeiten"] }
+        }
+      },
+      {
+        id: "wasser",
+        color: colors[1],
+        type: "noun",
+        pronunciation: "va-sır",
+        translations: { en: "water", tr: "su", de: "Wasser" },
+        sentences: {
+          present: { original: "Ich trinke Wasser.", translated: "Su içiyorum.", blank: "Ich trinke _____.", highlights: ["Wasser"] },
+          past: { original: "Ich trank kaltes Wasser.", translated: "Soğuk su içtim.", blank: "Ich trank kaltes _____.", highlights: ["Wasser"] },
+          future: { original: "Ich werde Wasser kaufen.", translated: "Su satın alacağım.", blank: "Ich werde _____ kaufen.", highlights: ["Wasser"] }
+        }
+      },
+      {
+        id: "familie",
+        color: colors[2],
+        type: "noun",
+        pronunciation: "fa-mi-li-ye",
+        translations: { en: "family", tr: "aile", de: "Familie" },
+        sentences: {
+          present: { original: "Meine Familie ist hier.", translated: "Ailem burada.", blank: "Meine _____ ist hier.", highlights: ["Familie"] },
+          past: { original: "Meine Familie war zusammen.", translated: "Ailem birlikteydi.", blank: "Meine _____ war zusammen.", highlights: ["Familie"] },
+          future: { original: "Meine Familie wird kommen.", translated: "Ailem gelecek.", blank: "Meine _____ wird kommen.", highlights: ["Familie"] }
+        }
+      },
+      {
+        id: "kaufen",
+        color: colors[3],
+        type: "verb",
+        pronunciation: "kau-fın",
+        translations: { en: "buy", tr: "satın almak", de: "kaufen" },
+        sentences: {
+          present: { original: "Wir kaufen Brot.", translated: "Ekmek alıyoruz.", blank: "Wir _____ Brot.", highlights: ["kaufen"] },
+          past: { original: "Wir kauften Obst.", translated: "Meyve aldık.", blank: "Wir _____ Obst.", highlights: ["kauften"] },
+          future: { original: "Wir werden Milch kaufen.", translated: "Süt satın alacağız.", blank: "Wir werden Milch _____.", highlights: ["kaufen"] }
+        }
+      }
+    ];
+
+    /* --------------------------------------------------
+       LOCAL STORAGE STORE
+    -------------------------------------------------- */
+    function createLocalStore() {
+      const STORAGE_KEY = "polyglot-learner-storage";
+      const listeners = new Set();
+
+      const defaultState = {
+        user: null,
+        settings: {
+          dailyNewWords: 5,
+          targetRepetitions: 5,
+          nativeLanguage: "tr",
+          learningLanguage: "de",
+          level: "A1",
+          testSize: 10,
+          darkMode: false,
+          minFontSize: 18,
+          maxFontSizeMobile: 42,
+          maxFontSizeDesktop: 62,
+          geminiApiKey: ""
+        },
+        progress: {},
+        customWords: [],
+        sessionWords: [],
+        difficultSession: [],
+        isUpdatingContent: false
+      };
+
+      let state = (() => {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+          return saved ? { ...defaultState, ...saved, settings: { ...defaultState.settings, ...(saved.settings || {}) } } : defaultState;
+        } catch {
+          return defaultState;
+        }
+      })();
+
+      const save = () => {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      };
+
+      const setState = (updater) => {
+        const partial = typeof updater === "function" ? updater(state) : updater;
+        state = { ...state, ...partial };
+        save();
+        listeners.forEach((l) => l());
+      };
+
+      const getAllWords = () => {
+        const byId = {};
+        [...sampleWords, ...state.customWords].forEach((w) => {
+          byId[w.id] = w;
+        });
+        return Object.values(byId);
+      };
+
+      const api = {
+        getState: () => ({
+          ...state,
+          setUser: (user) => setState({ user }),
+          updateSettings: (newSettings) => setState((s) => ({ settings: { ...s.settings, ...newSettings } })),
+          toggleDifficult: (wordId) => setState((s) => {
+            const current = s.progress[wordId] || { repetitions: 0, isLearned: false, isDifficult: false };
+            return {
+              progress: {
+                ...s.progress,
+                [wordId]: { ...current, isDifficult: !current.isDifficult }
+              }
             };
+          }),
+          addCustomWords: (newWords) => setState((s) => ({ customWords: [...s.customWords, ...newWords] })),
+          generateSession: () => {
+            const available = getAllWords().filter((w) => !state.progress[w.id]?.isLearned);
+            setState({ sessionWords: available.slice(0, state.settings.dailyNewWords) });
+          },
+          generateDifficultSession: () => {
+            const difficultWords = getAllWords().filter((w) => state.progress[w.id]?.isDifficult);
+            setState({ difficultSession: difficultWords, sessionWords: difficultWords });
+          },
+          updateProgress: (wordId, learned) => setState((s) => {
+            const current = s.progress[wordId] || { repetitions: 0, isLearned: false, isDifficult: false };
+            const nextRepetitions = learned ? s.settings.targetRepetitions : current.repetitions + 1;
+            return {
+              progress: {
+                ...s.progress,
+                [wordId]: {
+                  ...current,
+                  repetitions: nextRepetitions,
+                  isLearned: learned || nextRepetitions >= s.settings.targetRepetitions
+                }
+              }
+            };
+          }),
+          resetProgress: () => setState({ progress: {}, customWords: [], sessionWords: [], difficultSession: [] })
+        }),
+        subscribe: (listener) => {
+          listeners.add(listener);
+          return () => listeners.delete(listener);
+        }
+      };
+
+      return function useStore(selector = (s) => s) {
+        const [, force] = useState(0);
+        useEffect(() => {
+          const unsub = api.subscribe(() => force((x) => x + 1));
+          return unsub;
+        }, []);
+        return selector(api.getState());
+      };
+    }
+
+    const useStore = createLocalStore();
+
+    /* --------------------------------------------------
+       AI
+    -------------------------------------------------- */
+    let GoogleGenAI = window.googleGenAI ? window.googleGenAI.GoogleGenAI : null;
+
+    const getAiClient = (apiKey) => {
+      if (!apiKey || !GoogleGenAI) return null;
+      try {
+        return new GoogleGenAI({ apiKey });
+      } catch (e) {
+        return null;
+      }
+    };
+
+    const generateAudio = async (text, language, apiKey) => {
+      const ai = getAiClient(apiKey);
+      if (!ai) return null;
+
+      try {
+        const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash-preview-tts",
+          contents: [{ parts: [{ text: `Say this in ${language}: ${text}` }] }],
+          config: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName: "Kore" }
+              }
+            }
+          }
+        });
+
+        const base64Audio =
+          response?.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData?.data;
+
+        return base64Audio ? `data:audio/wav;base64,${base64Audio}` : null;
+      } catch (error) {
+        console.warn("Audio generation error:", error);
+        return null;
+      }
+    };
+
+    /* --------------------------------------------------
+       COMPONENTS
+    -------------------------------------------------- */
+    const Flashcard = ({ word, onComplete, onDifficult }) => {
+      const { settings, progress } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const [isFlipped, setIsFlipped] = useState(false);
+      const isDifficult = progress[word.id]?.isDifficult;
+
+      const displayWord =
+        word.translations[settings.learningLanguage] ||
+        word.translations.de ||
+        word.translations.en ||
+        word.translations.tr ||
+        word.id;
+
+      const nativeWord =
+        word.translations[settings.nativeLanguage] ||
+        word.translations.tr ||
+        word.translations.en ||
+        word.id;
+
+      const getDynamicFontSize = () => {
+        const maxFontSize = window.innerWidth < 768 ? settings.maxFontSizeMobile : settings.maxFontSizeDesktop;
+        const wordLength = String(displayWord).length;
+        let calculatedSize = maxFontSize;
+        if (wordLength > 5) calculatedSize = maxFontSize * (8 / wordLength);
+        return Math.max(settings.minFontSize, Math.min(maxFontSize, calculatedSize));
+      };
+
+      return (
+        <div className="w-full max-w-sm mx-auto flex flex-col gap-6">
+          <div className="aspect-[3/4] perspective-1000 w-full h-[450px] md:h-[500px]">
+            <div
+              className={cn("flashcard-inner w-full h-full relative cursor-pointer", isFlipped && "flashcard-flipped")}
+              onClick={() => setIsFlipped(!isFlipped)}
+            >
+              <div className="flashcard-front bg-white dark:bg-neutral-800 rounded-3xl shadow-2xl border-4 border-neutral-100 dark:border-neutral-700 p-8 flex flex-col items-center justify-center text-center overflow-hidden">
+                <div className="absolute top-6 left-6 flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: word.color }}></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: word.color }}>
+                    {word.type}
+                  </span>
+                </div>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onComplete(true);
+                  }}
+                  className="absolute top-4 right-4 w-12 h-12 flex items-center justify-center bg-white dark:bg-neutral-700 rounded-2xl shadow-lg border-2 border-neutral-100 dark:border-neutral-600 active:scale-90 transition-transform z-10"
+                  title={t("yes")}
+                >
+                  <span className="text-2xl">👌</span>
+                </button>
+
+                <h2
+                  className="font-black tracking-tighter leading-none mb-4"
+                  style={{ fontSize: `${getDynamicFontSize()}px`, color: word.color }}
+                >
+                  {displayWord}
+                </h2>
+
+                <p className="font-medium italic text-sm" style={{ color: word.color, opacity: 0.7 }}>
+                  {word.pronunciation}
+                </p>
+
+                <div className="absolute bottom-8 w-full px-8">
+                  <div className="flex items-center justify-center gap-2" style={{ color: word.color, opacity: 0.6 }}>
+                    <RotateCcw size={14} />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      {t("swipeToFlip")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                className="flashcard-back bg-white dark:bg-neutral-800 rounded-3xl shadow-2xl border-4 text-center p-8 flex flex-col overflow-y-auto hide-scrollbar"
+                style={{ borderColor: `${word.color}30` }}
+              >
+                <div className="flex justify-between items-start mb-6">
+                  <h3 className="text-2xl font-black tracking-tight" style={{ color: word.color }}>
+                    {nativeWord}
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDifficult();
+                      }}
+                      className={cn(
+                        "p-2 rounded-xl transition-colors border-2",
+                        isDifficult
+                          ? "bg-orange-500 text-white border-orange-400"
+                          : "bg-neutral-100 text-neutral-400 border-neutral-200 dark:border-neutral-700"
+                      )}
+                    >
+                      <AlertTriangle size={20} />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onComplete(true);
+                      }}
+                      className="w-10 h-10 flex items-center justify-center bg-white dark:bg-neutral-700 rounded-xl shadow-md border-2 active:scale-90 transition-transform"
+                      style={{ borderColor: `${word.color}40`, color: word.color }}
+                    >
+                      <span className="text-xl">👌</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-6 flex-1 text-left">
+                  {["present", "past", "future"].map((tense) => {
+                    const sentenceData = word.sentences?.[tense];
+                    if (!sentenceData) return null;
+                    return (
+                      <div key={tense} className="space-y-1">
+                        <span className="text-[10px] font-black uppercase tracking-widest opacity-60" style={{ color: word.color }}>
+                          {t(tense)}
+                        </span>
+                        <p className="text-sm font-bold leading-snug" style={{ color: word.color }}>
+                          {highlightWord(sentenceData.original, sentenceData.highlights || displayWord, word.color)}
+                        </p>
+                        <p className="text-xs italic opacity-70" style={{ color: word.color }}>
+                          {sentenceData.translated}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-8 hidden md:flex gap-3">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onComplete(false);
+                    }}
+                    className="flex-1 py-4 bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-transform"
+                  >
+                    {t("no")}
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onComplete(true);
+                    }}
+                    className="flex-1 py-4 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
+                    style={{ backgroundColor: word.color }}
+                  >
+                    <span className="text-lg">👌</span> {t("yes")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {isFlipped && (
+              <div className="md:hidden flex flex-col items-center gap-4 px-4">
+                <div className="flex items-center justify-center gap-6 w-full">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onComplete(false);
+                    }}
+                    className="w-16 h-16 flex items-center justify-center bg-red-50 text-red-500 dark:bg-red-900/20 rounded-full shadow-lg active:scale-90 transition-transform border-2 border-red-100 dark:border-red-900/30"
+                  >
+                    <X size={28} strokeWidth={3} />
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onComplete(true);
+                    }}
+                    className="w-16 h-16 flex items-center justify-center bg-green-500 text-white rounded-full shadow-xl active:scale-90 transition-transform"
+                  >
+                    <span className="text-3xl">👌</span>
+                  </button>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDifficult();
+                    }}
+                    className={cn(
+                      "w-16 h-16 flex items-center justify-center rounded-full shadow-lg active:scale-90 transition-transform border-2",
+                      isDifficult
+                        ? "bg-orange-500 text-white border-orange-400"
+                        : "bg-neutral-50 dark:bg-neutral-800 text-neutral-400 border-neutral-100 dark:border-neutral-700"
+                    )}
+                  >
+                    <AlertTriangle size={28} strokeWidth={3} />
+                  </button>
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: word.color }}>
+                  {t("iKnowThis")}
+                </p>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
+      );
+    };
+
+    const Layout = () => {
+      const location = useLocation();
+      const { settings, isUpdatingContent } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+
+      const navItems = [
+        { path: "/", icon: HomeIcon, label: t("home") },
+        { path: "/session", icon: BookOpen, label: t("learn") },
+        { path: "/difficult-words", icon: AlertTriangle, label: t("difficultWords") },
+        { path: "/test", icon: BrainCircuit, label: t("test") },
+        { path: "/learned", icon: CheckCircle, label: t("learned") },
+        { path: "/settings", icon: SettingsIcon, label: t("settings") },
+      ];
+
+      return (
+        <div className="flex flex-col h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 overflow-hidden">
+          {isUpdatingContent && (
+            <div className="fixed top-0 left-0 right-0 z-[100] bg-blue-600 text-white py-2 px-4 flex items-center justify-center gap-3 shadow-lg">
+              <Loader2 size={16} className="animate-spin" />
+              <span className="text-xs font-black uppercase tracking-widest">AI is generating content...</span>
+            </div>
+          )}
+
+          <main className="flex-1 overflow-y-auto pb-24">
+            <Outlet />
+          </main>
+
+          <nav className="fixed bottom-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-lg border-t border-neutral-200 dark:border-neutral-800 px-1 py-2 pb-safe z-50">
+            <div className="flex justify-around items-center max-w-screen-xl mx-auto">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      "flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all duration-200 flex-1 min-w-0 max-w-[80px]",
+                      isActive ? "text-blue-600 dark:text-blue-400 scale-110" : "text-neutral-400 dark:text-neutral-500"
+                    )}
+                  >
+                    <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                    <span
+                      className={cn(
+                        "text-[9px] font-bold uppercase tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis w-full text-center",
+                        isActive ? "opacity-100" : "opacity-70"
+                      )}
+                    >
+                      {item.label}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        </div>
+      );
+    };
+
+    /* --------------------------------------------------
+       PAGES
+    -------------------------------------------------- */
+    const Home = () => {
+      const { user, settings, progress, generateSession } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const navigate = useNavigate();
+
+      if (!user) return <Navigate to="/welcome" />;
+
+      const learnedCount = Object.values(progress).filter((p) => p.isLearned).length;
+      const difficultCount = Object.values(progress).filter((p) => p.isDifficult).length;
+
+      const yearlyGoal = 720;
+      const yearlyProgress = Math.min(100, (learnedCount / yearlyGoal) * 100);
+
+      return (
+        <div className="p-6 space-y-8 max-w-md mx-auto">
+          <header className="py-8">
+            <h1 className="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white">
+              {t("greeting")}, {user.name}!
+            </h1>
+            <p className="text-neutral-500 dark:text-neutral-400 font-medium mt-1">
+              {t("readyToLearn")}
+            </p>
+          </header>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-blue-600 p-6 rounded-[32px] text-white shadow-xl col-span-2">
+              <div className="flex justify-between items-start mb-4">
+                <div className="p-3 bg-white/20 rounded-2xl">
+                  <Star size={24} fill="currentColor" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full">
+                  {settings.level}
+                </span>
+              </div>
+              <h3 className="text-xl font-black mb-1">{t("todaysGoal")}</h3>
+              <p className="text-blue-100 text-sm font-medium mb-6">
+                {settings.dailyNewWords} {t("words")} • {settings.targetRepetitions} {t("totalReps")}
+              </p>
+              <button
+                onClick={() => {
+                  generateSession();
+                  navigate("/session");
+                }}
+                className="w-full py-4 bg-white text-blue-600 rounded-2xl font-black text-sm active:scale-95 transition-transform"
+              >
+                {t("startTodaysSession")}
+              </button>
+            </div>
+
+            <div className="bg-white dark:bg-neutral-800 p-6 rounded-[32px] border border-neutral-100 dark:border-neutral-700 col-span-2 shadow-sm">
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="font-black text-neutral-900 dark:text-white uppercase tracking-widest text-xs">
+                  {t("yearlyProgress")}
+                </h4>
+                <span className="text-blue-600 font-black text-lg">{learnedCount} / {yearlyGoal}</span>
+              </div>
+              <div className="w-full h-4 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
+                <div className="h-full bg-blue-600 rounded-full" style={{ width: `${yearlyProgress}%` }} />
+              </div>
+              <p className="text-[10px] text-neutral-400 font-bold mt-2 uppercase tracking-widest">
+                %{yearlyProgress.toFixed(1)} {t("completed")}
+              </p>
+            </div>
+
+            <Link to="/learned" className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
+              <CheckCircle className="text-green-500 mb-3" size={24} />
+              <h4 className="font-black text-neutral-900 dark:text-white">{t("learned")}</h4>
+              <p className="text-2xl font-black text-neutral-900 dark:text-white">{learnedCount}</p>
+            </Link>
+
+            <Link to="/difficult-words" className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
+              <AlertTriangle className="text-orange-500 mb-3" size={24} />
+              <h4 className="font-black text-neutral-900 dark:text-white">{t("difficultWords")}</h4>
+              <p className="text-2xl font-black text-neutral-900 dark:text-white">{difficultCount}</p>
+            </Link>
+          </div>
+        </div>
+      );
+    };
+
+    const Welcome = () => {
+      const { setUser, settings } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const navigate = useNavigate();
+      const [name, setName] = useState("");
+
+      const handleStart = () => {
+        if (name.trim()) {
+          setUser({ name: name.trim() });
+          navigate("/");
+        }
+      };
+
+      return (
+        <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-8 text-white">
+          <div className="w-full max-w-sm space-y-8 text-center">
+            <div className="w-24 h-24 bg-white/20 rounded-[32px] flex items-center justify-center mx-auto mb-8">
+              <Languages size={48} />
+            </div>
+            <h1 className="text-4xl font-black tracking-tighter">{t("welcomeTitle")}</h1>
+            <p className="text-blue-100 font-medium">{t("welcomeDesc")}</p>
+
+            <div className="space-y-4 pt-8">
+              <input
+                type="text"
+                placeholder={t("yourName")}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-6 py-5 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder:text-white/50 font-bold focus:outline-none focus:border-white/50 transition-colors"
+              />
+              <button
+                onClick={handleStart}
+                className="w-full py-5 bg-white text-blue-600 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform"
+              >
+                {t("startLearning")}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const Session = () => {
+      const { sessionWords, difficultSession, updateProgress, toggleDifficult, settings } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const navigate = useNavigate();
+      const words = sessionWords.length ? sessionWords : difficultSession;
+      const [currentIndex, setCurrentIndex] = useState(0);
+
+      if (!words.length) {
+        return (
+          <div className="p-6 flex flex-col items-center justify-center h-full text-center space-y-4">
+            <div className="p-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full">
+              <CheckCircle size={48} />
+            </div>
+            <h2 className="text-2xl font-black">{t("allDone")}</h2>
+            <p className="text-neutral-500 max-w-xs">{t("allDoneDesc")}</p>
+            <button onClick={() => navigate("/")} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black">
+              {t("backToHome")}
+            </button>
+          </div>
+        );
+      }
+
+      const currentWord = words[currentIndex];
+
+      const handleComplete = (learned) => {
+        updateProgress(currentWord.id, learned);
+        if (currentIndex < words.length - 1) {
+          setCurrentIndex((prev) => prev + 1);
+        } else {
+          navigate("/");
+        }
+      };
+
+      return (
+        <div className="p-6 h-full flex flex-col">
+          <header className="flex justify-between items-center mb-8">
+            <button onClick={() => navigate("/")} className="p-2 text-neutral-400"><X /></button>
+            <div className="flex gap-1">
+              {words.map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "h-1.5 w-6 rounded-full transition-colors",
+                    i <= currentIndex ? "bg-blue-600" : "bg-neutral-200 dark:bg-neutral-700"
+                  )}
+                ></div>
+              ))}
+            </div>
+            <div className="w-10"></div>
+          </header>
+          <div className="flex-1 flex items-center justify-center">
+            <Flashcard
+              word={currentWord}
+              onComplete={handleComplete}
+              onDifficult={() => toggleDifficult(currentWord.id)}
+            />
+          </div>
+        </div>
+      );
+    };
+
+    const DifficultWords = () => {
+      const { progress, settings, toggleDifficult, customWords, generateDifficultSession } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const navigate = useNavigate();
+      const [searchQuery, setSearchQuery] = useState("");
+
+      const allWords = [...sampleWords, ...customWords];
+      const difficultWords = allWords.filter((w) => progress[w.id]?.isDifficult);
+      const filteredWords = searchQuery.trim()
+        ? allWords.filter((w) =>
+            (w.translations[settings.learningLanguage] || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (w.translations[settings.nativeLanguage] || "").toLowerCase().includes(searchQuery.toLowerCase())
+          ).slice(0, 8)
+        : [];
+
+      return (
+        <div className="p-6 max-w-md mx-auto space-y-8">
+          <header className="py-8">
+            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+              <AlertTriangle size={32} className="text-orange-500" />
+              {t("difficultWords")}
+            </h1>
+          </header>
+
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
+              <input
+                type="text"
+                placeholder={t("searchWords")}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-12 pr-4 py-4 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+              />
+            </div>
+
+            {searchQuery && (
+              <div className="space-y-2">
+                {filteredWords.map((word) => (
+                  <div key={word.id} className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+                    <div>
+                      <p className="font-black uppercase tracking-tight" style={{ color: word.color }}>
+                        {word.translations[settings.learningLanguage]}
+                      </p>
+                      <p className="text-xs font-bold" style={{ color: word.color, opacity: 0.6 }}>
+                        {word.translations[settings.nativeLanguage]}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => toggleDifficult(word.id)}
+                      className={cn(
+                        "p-2 rounded-xl",
+                        progress[word.id]?.isDifficult ? "bg-red-100 text-red-600" : "bg-neutral-100 text-neutral-400"
+                      )}
+                    >
+                      {progress[word.id]?.isDifficult ? <X size={20} /> : <Plus size={20} />}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-sm font-black text-neutral-400 uppercase tracking-widest">
+              {t("difficultWords")} ({difficultWords.length})
+            </h3>
+            {difficultWords.length > 0 ? (
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    generateDifficultSession();
+                    navigate("/session");
+                  }}
+                  className="w-full py-4 bg-orange-500 text-white rounded-2xl font-black flex items-center justify-center gap-2"
+                >
+                  <Play size={20} fill="currentColor" />
+                  {t("startReview")}
+                </button>
+                {difficultWords.map((word) => (
+                  <div key={word.id} className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-black uppercase tracking-tight" style={{ color: word.color }}>
+                        {word.translations[settings.learningLanguage]}
+                      </h3>
+                      <p className="font-bold" style={{ color: word.color, opacity: 0.6 }}>
+                        {word.translations[settings.nativeLanguage]}
+                      </p>
+                    </div>
+                    <button onClick={() => toggleDifficult(word.id)} className="p-3 text-red-500">
+                      <X size={20} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-700">
+                <p className="text-neutral-400 font-medium">{t("noDifficultWords")}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
+
+    const Test = () => {
+      const { settings, progress, customWords, toggleDifficult } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const navigate = useNavigate();
+
+      const allWords = [...sampleWords, ...customWords];
+      const learnedWords = allWords.filter((w) => progress[w.id]?.isLearned);
+      const isTestUnlocked = learnedWords.length >= 10;
+      const maxRounds = Math.min(learnedWords.length, settings.testSize || 10);
+
+      const [gamePhase, setGamePhase] = useState(isTestUnlocked ? "playing" : "locked");
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [score, setScore] = useState(0);
+      const [wrongCount, setWrongCount] = useState(0);
+      const [testWords, setTestWords] = useState([]);
+      const [options, setOptions] = useState([]);
+      const [selectedOption, setSelectedOption] = useState(null);
+      const [feedback, setFeedback] = useState(null);
+      const [currentTense, setCurrentTense] = useState("present");
+      const [showHint, setShowHint] = useState(false);
+      const [audioUrl, setAudioUrl] = useState(null);
+
+      const playAudio = () => {
+        if (audioUrl) {
+          const audio = new Audio(audioUrl);
+          audio.play();
+        }
+      };
+
+      useEffect(() => {
+        if (isTestUnlocked && gamePhase === "playing" && testWords.length === 0) {
+          const shuffled = [...learnedWords].sort(() => 0.5 - Math.random());
+          setTestWords(shuffled.slice(0, maxRounds));
+        }
+      }, [isTestUnlocked, gamePhase, learnedWords.length, maxRounds]);
+
+      useEffect(() => {
+        if (testWords.length > 0 && currentIndex < testWords.length) {
+          const currentWord = testWords[currentIndex];
+          const tenses = ["present", "past", "future"];
+          const randomTense = tenses[Math.floor(Math.random() * tenses.length)];
+          setCurrentTense(randomTense);
+          setShowHint(false);
+          setAudioUrl(null);
+
+          generateAudio(
+            currentWord.translations[settings.learningLanguage],
+            settings.learningLanguage,
+            settings.geminiApiKey
+          ).then((url) => setAudioUrl(url));
+
+          const correctAnswer = currentWord.translations[settings.learningLanguage];
+          const otherWords = allWords.filter((w) => w.id !== currentWord.id);
+          const randomOthers = otherWords
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 3)
+            .map((w) => w.translations[settings.learningLanguage]);
+
+          while (randomOthers.length < 3) {
+            randomOthers.push(`Option ${randomOthers.length + 1}`);
+          }
+
+          setOptions([...randomOthers, correctAnswer].sort(() => 0.5 - Math.random()));
+          setSelectedOption(null);
+          setFeedback(null);
+        }
+      }, [currentIndex, testWords, settings.learningLanguage, settings.geminiApiKey]);
+
+      const handleCheck = () => {
+        if (!selectedOption) return;
+        const currentWord = testWords[currentIndex];
+        const isCorrect = selectedOption === currentWord.translations[settings.learningLanguage];
+
+        if (isCorrect) {
+          setScore((s) => s + 1);
+          setFeedback("correct");
+        } else {
+          setWrongCount((s) => s + 1);
+          setFeedback("wrong");
+          if (!progress[currentWord.id]?.isDifficult) {
+            toggleDifficult(currentWord.id);
+          }
         }
 
-        // --- UTILS ---
-        const cn = (...classes) => classes.filter(Boolean).join(' ');
+        setTimeout(() => {
+          if (currentIndex < testWords.length - 1) {
+            setCurrentIndex((i) => i + 1);
+          } else {
+            setGamePhase("finished");
+          }
+        }, 1300);
+      };
 
-        const highlightWord = (sentence, wordsToHighlight, color) => {
-            if (!sentence || !wordsToHighlight) return sentence;
-            
-            // Convert to array if it's a single string
-            const words = Array.isArray(wordsToHighlight) ? wordsToHighlight : [wordsToHighlight];
-            
-            // Escape words for regex and join with |
-            const escapedWords = words.map(w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-            const regex = new RegExp(`(${escapedWords})`, 'gi');
-            
-            const parts = sentence.split(regex);
-            return parts.map((part, i) => 
-                regex.test(part) ? 
-                React.createElement('span', { key: i, style: { color: color, fontWeight: '900' } }, part) : 
-                part
-            );
-        };
-
-        const speak = (text, lang = "de-DE") => {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = lang;
-            utterance.rate = 0.7;
-            utterance.pitch = 1;
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
-        };
-
-        // --- TRANSLATIONS ---
-        const translations = {
-            en: {
-                home: 'Home', learn: 'Learn', learned: 'Learned', settings: 'Settings', review: 'Review', test: 'Test',
-                greeting: 'Hello', readyToLearn: 'Ready to learn?', todaysGoal: "Today's Goal", words: 'Words',
-                totalReps: 'total repetitions', allDone: 'All done for today!', allDoneDesc: 'You can review learned words or start a new session.',
-                startNewSession: 'Start New Session', continueSession: 'Continue Session', startTodaysSession: "Start Today's Session",
-                masteredAll: 'Incredible! You have mastered all available words for your level.', learnedWordsTitle: 'Learned Words',
-                learnedWordsDesc: 'You have mastered {count} words.', noWordsLearned: 'No words learned yet.',
-                completeSessionToSee: 'Complete a session to see them here.', settingsTitle: 'Settings', settingsDesc: 'Customize your learning experience.',
-                dailyNewWords: 'Daily New Words', dailyNewWordsDesc: 'How many new words to learn each day.',
-                targetRepetitions: 'Target Repetitions', targetRepetitionsDesc: 'How many times you need to repeat a word to master it.',
-                uiLanguage: 'Native Language', uiLanguageDesc: 'Choose your native language for translations.',
-                learningLanguage: 'Learning Language', learningLanguageDesc: 'Choose the language you want to learn.',
-                userLevel: 'Your Level', userLevelDesc: 'Select your target learning level.',
-                testSize: 'Test Size', testSizeDesc: 'Number of words in each test session.',
-                testLockMessage: 'You must learn at least 10 words to unlock the test screen.',
-                deleteAll: 'Delete All', confirmDeleteAll: 'Are you sure you want to delete all learned words?',
-                testLevelInfo: 'Testing level: {level}', autoSaved: 'Auto-Saved', autoSavedDesc: 'Your settings are automatically saved.',
-                card: 'Card', swipeToFlip: '↕ Swipe to flip', swipeToChange: '↔ Swipe to change',
-                didYouRepeat: 'Did you repeat this at least once?', yes: 'Yes', no: 'No', markDifficult: 'Mark as Difficult',
-                sessionComplete: 'Session Complete!', sessionCompleteDesc: 'You have reached the target repetitions for all words in this set.',
-                memorizedAll: 'I memorized all', present: 'Present', past: 'Past', future: 'Future',
-                welcomeTitle: 'Welcome to Polyglot Learner', welcomeDesc: 'Please enter your name and select your preferences to start.',
-                yourName: 'Your Name', startLearning: 'Start Learning', difficultWords: 'Difficult Words',
-                difficultWordsDesc: 'Words you marked as hard to remember.', noDifficultWords: 'No difficult words yet.',
-                practiceDifficult: 'Practice Difficult Words', testMode: 'Test Mode', testModeDesc: 'Test your knowledge of learned words.',
-                startTest: 'Start Test', question: 'Question', score: 'Score', finishTest: 'Finish Test',
-                testComplete: 'Test Complete!', yourScore: 'Your Score', backToHome: 'Back to Home',
-                delete: 'Delete', copiedToClipboard: 'Copied to clipboard!', shareNotSupported: 'Web Share API not supported on this device.',
-                noEtymology: 'No etymology information available.', gotIt: 'Got it', etymology: 'Etymology',
-                testYourself: 'Test Yourself', checkAnswer: 'Check Answer', iKnewIt: 'I Knew It!', iDidntKnow: 'I Didn\'t Know',
-                testReport: 'Test Report', congrats: 'Congratulations! You did a great job.', reviewNeeded: 'Please be more careful and let\'s review again.',
-                riddleHint: 'Hint: ', correctGuess: 'You guessed right!', wrongGuess: 'Let\'s add this to difficult words and review it.',
-                iKnowThis: 'I already know this', resetProgress: 'Reset Progress', resetRepetitions: 'Reset Repetitions',
-                selectLearningLang: 'Select the language you want to learn', selectUILang: 'Select the interface language',
-                congratulations: 'Congratulations!', learnedBtn: 'Learned', difficultBtn: 'Difficult', resetBtn: 'Reset',
-                dropHere: 'Drop here', chooseCorrect: 'Choose the correct translation', explanation: 'Explanation',
-                reset: 'Reset', userAdded: 'Added by you', systemAdded: 'System word', addCustomWords: 'Add Custom Words',
-                addCustomWordsDesc: 'Enter words separated by commas (e.g., haus, rennen, stop)', addWordsBtn: 'Add Words',
-                daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly', learningGoals: 'Learning Goals',
-                generating: 'Generating...', theme: 'Theme', addWordTitle: 'Add New Word (AI)', enterWordPlaceholder: 'Enter a word...',
-                add: 'Add', totalProgress: 'Total Progress', completed: 'Completed', yearlyProgress: 'Yearly Progress', settingsSaved: 'Settings saved successfully!', saving: 'Saving...',
-                saveSettings: 'Save Settings', manualSaveRequired: 'Manual Save Required', manualSaveDesc: 'You need to click "Save Settings" for your changes to take effect.',
-                fontSizeSettings: 'Font Size Settings', minFontSize: 'Min Font Size', maxFontSizeMobile: 'Max Font Size (Mobile)',
-                maxFontSizeDesktop: 'Max Font Size (PC)', addDifficultWords: 'Add to Difficult Words', removeDifficultWords: 'Remove from Difficult Words',
-                searchWords: 'Search words...', startReview: 'Start Review Session', manageDifficultWords: 'Manage Difficult Words',
-                allWords: 'All Words', geminiApiKey: 'Gemini API Key', geminiApiKeyDesc: 'Enter your Google Gemini API key to enable AI features.'
-            },
-            tr: {
-                home: 'Ana Sayfa', learn: 'Öğren', learned: 'Öğrenilenler', settings: 'Ayarlar', review: 'Tekrar', test: 'Test',
-                greeting: 'Merhaba', readyToLearn: 'Öğrenmeye hazır mısın?', todaysGoal: 'Bugünkü Hedef', words: 'Kelime',
-                totalReps: 'toplam tekrar', allDone: 'Bugünlük bu kadar!', allDoneDesc: 'Öğrendiğin kelimeleri gözden geçirebilir veya yeni bir oturum başlatabilirsin.',
-                startNewSession: 'Yeni Oturum Başlat', continueSession: 'Oturuma Devam Et', startTodaysSession: 'Bugünkü Oturumu Başlat',
-                masteredAll: 'İnanılmaz! Seviyendeki tüm kelimeleri öğrendin.', learnedWordsTitle: 'Öğrenilen Kelimeler',
-                learnedWordsDesc: '{count} kelimeyi tamamen öğrendin.', noWordsLearned: 'Henüz öğrenilen kelime yok.',
-                completeSessionToSee: 'Burada görmek için bir oturumu tamamla.', settingsTitle: 'Ayarlar', settingsDesc: 'Öğrenme deneyimini özelleştir.',
-                dailyNewWords: 'Günlük Yeni Kelime', dailyNewWordsDesc: 'Her gün kaç yeni kelime öğrenilecek.',
-                targetRepetitions: 'Hedef Tekrar', targetRepetitionsDesc: 'Bir kelimeyi öğrenmek için kaç kez tekrar etmen gerekiyor.',
-                uiLanguage: 'Ana Dil', uiLanguageDesc: 'Çeviriler için ana dilinizi seçin.',
-                learningLanguage: 'Öğrenilecek Dil', learningLanguageDesc: 'Öğrenmek istediğiniz dili seçin.',
-                userLevel: 'Seviyen', userLevelDesc: 'Hedef öğrenme seviyeni seç.',
-                testSize: 'Test Boyutu', testSizeDesc: 'Her test oturumundaki kelime sayısı.',
-                testLockMessage: 'Test ekranını açmak için en az 10 kelime öğrenmelisiniz.',
-                deleteAll: 'Hepsini Sil', confirmDeleteAll: 'Tüm öğrenilen kelimeleri silmek istediğinize emin misiniz?',
-                testLevelInfo: 'Test edilen seviye: {level}', autoSaved: 'Otomatik Kaydedildi', autoSavedDesc: 'Ayarların otomatik olarak kaydedilir.',
-                card: 'Kart', swipeToFlip: '↕ Çevirmek için kaydır', swipeToChange: '↔ Değiştirmek için kaydır',
-                didYouRepeat: 'Bunu en az bir kez tekrar ettin mi?', yes: 'Evet', no: 'Hayır', markDifficult: 'Zor Olarak İşaretle',
-                sessionComplete: 'Oturum Tamamlandı!', sessionCompleteDesc: 'Bu setteki tüm kelimeler için hedef tekrara ulaştın.',
-                memorizedAll: 'Hepsini ezberledim', present: 'Şimdiki', past: 'Geçmiş', future: 'Gelecek',
-                welcomeTitle: 'Polyglot Learner\'a Hoş Geldin', welcomeDesc: 'Başlamak için lütfen adını gir ve tercihlerini seç.',
-                yourName: 'Adın', startLearning: 'Öğrenmeye Başla', difficultWords: 'Zor Kelimeler',
-                difficultWordsDesc: 'Hatırlamakta zorlandığın kelimeler.', noDifficultWords: 'Henüz zor kelime yok.',
-                practiceDifficult: 'Zor Kelimeleri Çalış', testMode: 'Test Modu', testModeDesc: 'Öğrendiğin kelimelerle kendini test et.',
-                startTest: 'Teste Başla', question: 'Soru', score: 'Puan', finishTest: 'Testi Bitir',
-                testComplete: 'Test Tamamlandı!', yourScore: 'Puanın', backToHome: 'Ana Sayfaya Dön',
-                delete: 'Sil', copiedToClipboard: 'Panoya kopyalandı!', shareNotSupported: 'Cihazınızda paylaşım desteklenmiyor.',
-                noEtymology: 'Köken bilgisi bulunmuyor.', gotIt: 'Anladım', etymology: 'Köken (Etimoloji)',
-                testYourself: 'Kendini Test Et', checkAnswer: 'Cevabı Kontrol Et', iKnewIt: 'Doğru Bildim!', iDidntKnow: 'Bilemedim',
-                testReport: 'Test Raporu', congrats: 'Tebrikler! Harika bir iş çıkardın.', reviewNeeded: 'Lütfen daha dikkatli olalım ve tekrar gözden geçirelim.',
-                riddleHint: 'İpucu: ', correctGuess: 'Doğru bildiniz!', wrongGuess: 'Bunu zor kelimelere ekleyip tekrar edelim.',
-                iKnowThis: 'Biliyorum', resetProgress: 'İlerlemeyi Sıfırla', resetRepetitions: 'Tekrarları Sıfırla',
-                selectLearningLang: 'Öğrenmek istediğiniz dili seçin', selectUILang: 'Uygulama dilini seçin',
-                congratulations: 'Tebrikler!', learnedBtn: 'Öğrenilenler', difficultBtn: 'Zor Kelimeler', resetBtn: 'Sıfırla',
-                dropHere: 'Buraya bırak', chooseCorrect: 'Doğru çeviriyi seçin', explanation: 'Açıklama',
-                reset: 'Sıfırla', userAdded: 'Senin eklediğin', systemAdded: 'Sistem kelimesi', addCustomWords: 'Kelime Ekle',
-                addCustomWordsDesc: 'Kelimeleri virgülle ayırarak girin (örn: haus, rennen, stop)', addWordsBtn: 'Ekle',
-                daily: 'Günlük', weekly: 'Haftalık', monthly: 'Aylık', yearly: 'Yıllık', learningGoals: 'Öğrenme Hedefleri',
-                generating: 'Hazırlanıyor...', theme: 'Tema', addWordTitle: 'Yeni Kelime Ekle (AI)', enterWordPlaceholder: 'Kelime girin...',
-                add: 'Ekle', totalProgress: 'Toplam İlerleme', completed: 'Tamamlandı', yearlyProgress: 'Yıllık İlerleme', settingsSaved: 'Ayarlar başarıyla kaydedildi!', saving: 'Kaydediliyor...',
-                saveSettings: 'Ayarları Kaydet', manualSaveRequired: 'Manuel Kayıt Gerekli', manualSaveDesc: 'Yaptığınız değişikliklerin uygulanması için "Ayarları Kaydet" butonuna basmanız gerekmektedir.',
-                fontSizeSettings: 'Yazı Boyutu Ayarları', minFontSize: 'Min Boyut', maxFontSizeMobile: 'Max Boyut (Mobil)',
-                maxFontSizeDesktop: 'Max Boyut (PC)', addDifficultWords: 'Zor Kelimelere Ekle', removeDifficultWords: 'Zor Kelimelerden Çıkar',
-                searchWords: 'Kelime ara...', startReview: 'Tekrar Oturumunu Başlat', manageDifficultWords: 'Zor Kelimeleri Yönet',
-                allWords: 'Tüm Kelimeler', geminiApiKey: 'Gemini API Anahtarı', geminiApiKeyDesc: 'AI özelliklerini etkinleştirmek için Google Gemini API anahtarınızı girin.'
-            }
-        };
-
-        const useTranslation = (lang) => {
-            return (key, params = {}) => {
-                let text = translations[lang]?.[key] || translations['en']?.[key] || key;
-                Object.entries(params).forEach(([k, v]) => {
-                    text = text.replace(`{${k}}`, v);
-                });
-                return text;
-            };
-        };
-
-        // --- STORE ---
-        const colors = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316'];
-
-        const useStore = create(
-            persist(
-                (set, get) => ({
-                    user: null,
-                    settings: {
-                        dailyNewWords: 5,
-                        targetRepetitions: 5,
-                        nativeLanguage: 'tr',
-                        learningLanguage: 'en',
-                        level: 'A1',
-                        testSize: 10,
-                        darkMode: false,
-                        minFontSize: 4,
-                        maxFontSizeMobile: 48,
-                        maxFontSizeDesktop: 72,
-                        geminiApiKey: ''
-                    },
-                    progress: {},
-                    customWords: [],
-                    sessionWords: [],
-                    difficultSession: [],
-                    isUpdatingContent: false,
-
-                    setUser: (user) => set({ user }),
-                    updateSettings: (newSettings) => set((state) => ({
-                        settings: { ...state.settings, ...newSettings }
-                    })),
-                    
-                    toggleDifficult: (wordId) => set((state) => {
-                        const wordProgress = state.progress[wordId] || { repetitions: 0, isLearned: false, isDifficult: false };
-                        const newDifficultStatus = !wordProgress.isDifficult;
-                        
-                        return {
-                            progress: {
-                                ...state.progress,
-                                [wordId]: { ...wordProgress, isDifficult: newDifficultStatus }
-                            }
-                        };
-                    }),
-
-                    addCustomWords: (newWords) => set((state) => ({
-                        customWords: [...state.customWords, ...newWords]
-                    })),
-
-                    generateSession: () => {
-                        const { settings, progress, customWords } = get();
-                        // Simple logic for session generation
-                        // In a real app, this would be more complex
-                        const availableWords = [...customWords].filter(w => !progress[w.id]?.isLearned);
-                        set({ sessionWords: availableWords.slice(0, settings.dailyNewWords) });
-                    },
-
-                    generateDifficultSession: () => {
-                        const { progress, customWords } = get();
-                        const difficultWords = [...customWords].filter(w => progress[w.id]?.isDifficult);
-                        set({ difficultSession: difficultWords });
-                    },
-
-                    updateProgress: (wordId, learned) => set((state) => {
-                        const current = state.progress[wordId] || { repetitions: 0, isLearned: false, isDifficult: false };
-                        return {
-                            progress: {
-                                ...state.progress,
-                                [wordId]: { 
-                                    ...current, 
-                                    repetitions: learned ? state.settings.targetRepetitions : current.repetitions + 1,
-                                    isLearned: learned || (current.repetitions + 1 >= state.settings.targetRepetitions)
-                                }
-                            }
-                        };
-                    }),
-
-                    resetProgress: () => set({ progress: {}, customWords: [], sessionWords: [], difficultSession: [] }),
-                }),
-                { name: 'polyglot-learner-storage' }
-            )
+      if (gamePhase === "locked") {
+        return (
+          <div className="p-12 text-center space-y-6">
+            <div className="w-20 h-20 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle size={40} />
+            </div>
+            <h2 className="text-2xl font-black">{t("testLockMessage")}</h2>
+            <button onClick={() => navigate("/")} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black">
+              {t("backToHome")}
+            </button>
+          </div>
         );
+      }
 
-        // --- AI SERVICE ---
-        const getAiClient = (apiKey) => {
-            if (!apiKey) return null;
-            return new GoogleGenAI({ apiKey });
-        };
+      if (gamePhase === "finished") {
+        return (
+          <div className="p-8 text-center space-y-8">
+            <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
+              <Trophy size={48} />
+            </div>
+            <h2 className="text-3xl font-black">{t("testComplete")}</h2>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
+                <p className="text-[10px] font-black uppercase text-neutral-400">{t("score")}</p>
+                <p className="text-2xl font-black text-blue-600">{score}</p>
+              </div>
+              <div className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
+                <p className="text-[10px] font-black uppercase text-neutral-400">Hata</p>
+                <p className="text-2xl font-black text-red-500">{wrongCount}</p>
+              </div>
+              <div className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
+                <p className="text-[10px] font-black uppercase text-neutral-400">Başarı</p>
+                <p className="text-2xl font-black text-green-500">%{maxRounds ? Math.round((score / maxRounds) * 100) : 0}</p>
+              </div>
+            </div>
+            <button onClick={() => navigate("/")} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg">
+              {t("backToHome")}
+            </button>
+          </div>
+        );
+      }
 
-        const generateAudio = async (text, language, apiKey) => {
-            const ai = getAiClient(apiKey);
-            if (!ai) return null;
+      const currentWord = testWords[currentIndex];
+      if (!currentWord) {
+        return <div className="p-12 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
+      }
 
-            try {
-                const response = await ai.models.generateContent({
-                    model: "gemini-2.5-flash-preview-tts",
-                    contents: [{ parts: [{ text: `Say: ${text}` }] }],
-                    config: {
-                        responseModalities: ['AUDIO'],
-                        speechConfig: {
-                            voiceConfig: {
-                                prebuiltVoiceConfig: { voiceName: 'Kore' },
-                            },
-                        },
-                    },
-                });
-                const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-                if (base64Audio) {
-                    return `data:audio/wav;base64,${base64Audio}`;
-                }
-                return null;
-            } catch (error) {
-                console.error("Audio generation error:", error);
-                return null;
-            }
-        };
+      const sentenceData = currentWord.sentences?.[currentTense] || { blank: "_____", translated: "No hint available" };
 
-        const translateAndEnrichWord = async (word, learningLanguage, nativeLanguage, level, apiKey) => {
-            const ai = getAiClient(apiKey);
-            if (!ai) return null;
+      return (
+        <div className="p-6 max-w-md mx-auto space-y-6">
+          <div className="flex justify-between items-center bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
+            <span className="font-black text-xs uppercase tracking-widest text-neutral-400">{currentIndex + 1} / {maxRounds}</span>
+            <div className="flex gap-4">
+              <span className="text-green-500 font-black">✓ {score}</span>
+              <span className="text-red-500 font-black">✗ {wrongCount}</span>
+            </div>
+          </div>
 
-            try {
-                const response = await ai.models.generateContent({
-                    model: "gemini-3-flash-preview",
-                    contents: `Translate the word "${word}" from ${learningLanguage} to ${nativeLanguage}. 
-                    The learner is at level ${level}. 
-                    Provide translations for all these languages: en, tr, de, fr, es, it, pt, ru, ar, ja, zh.
-                    Provide a pronunciation guide, type, example sentences for:
-                    1. Present Tense (Simdiki Zaman)
-                    2. Past Tense (Gecmis Zaman)
-                    3. Future Tense (Gelecek Zaman)
-                    Each sentence must be appropriate for level ${level}, in both ${learningLanguage} and ${nativeLanguage}.
-                    Also provide a "blank" version of the ${learningLanguage} sentence where the word "${word}" (or its conjugated form) is replaced by "_____".
-                    CRITICAL: For German separable verbs (trennbar), identify all parts of the verb used in the sentence (e.g., for "aufstehen", identify ["stehe", "auf"] in "Ich stehe auf").
-                    Provide etymology and an image keyword.`,
-                    config: {
-                        responseMimeType: "application/json",
-                        responseSchema: {
-                            type: Type.OBJECT,
-                            properties: {
-                                translations: { type: Type.OBJECT },
-                                wordFormatted: { type: Type.STRING },
-                                pronunciation: { type: Type.STRING },
-                                type: { type: Type.STRING },
-                                imageKeyword: { type: Type.STRING },
-                                sentences: { 
-                                    type: Type.OBJECT,
-                                    properties: {
-                                        present: { 
-                                            type: Type.OBJECT, 
-                                            properties: { 
-                                                original: { type: Type.STRING }, 
-                                                translated: { type: Type.STRING },
-                                                blank: { type: Type.STRING },
-                                                highlights: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                            } 
-                                        },
-                                        past: { 
-                                            type: Type.OBJECT, 
-                                            properties: { 
-                                                original: { type: Type.STRING }, 
-                                                translated: { type: Type.STRING },
-                                                blank: { type: Type.STRING },
-                                                highlights: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                            } 
-                                        },
-                                        future: { 
-                                            type: Type.OBJECT, 
-                                            properties: { 
-                                                original: { type: Type.STRING }, 
-                                                translated: { type: Type.STRING },
-                                                blank: { type: Type.STRING },
-                                                highlights: { type: Type.ARRAY, items: { type: Type.STRING } }
-                                            } 
-                                        }
-                                    }
-                                },
-                                etymology: { type: Type.OBJECT },
-                            }
-                        }
-                    }
-                });
-                return JSON.parse(response.text);
-            } catch (error) {
-                console.error(error);
-                return null;
-            }
-        };
+          <div className="bg-white dark:bg-neutral-800 p-8 rounded-[40px] border-4 text-center shadow-xl relative overflow-hidden" style={{ borderColor: currentWord.color }}>
+            <div className="absolute top-4 left-4 flex gap-2">
+              <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase" style={{ backgroundColor: `${currentWord.color}20`, color: currentWord.color }}>
+                {t(currentTense)}
+              </span>
+              {audioUrl && (
+                <button onClick={playAudio} className="p-1 rounded-full" style={{ backgroundColor: `${currentWord.color}10`, color: currentWord.color }}>
+                  <Volume2 size={16} />
+                </button>
+              )}
+            </div>
 
-        // --- COMPONENTS ---
+            <div className="py-8">
+              <h2 className="text-2xl font-black leading-relaxed tracking-tight" style={{ color: currentWord.color }}>
+                {sentenceData.blank || "_____"}
+              </h2>
+            </div>
 
-        const Flashcard = ({ word, onComplete, onDifficult }) => {
-            const { settings, updateProgress, toggleDifficult, progress } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const [isFlipped, setIsFlipped] = useState(false);
-            const isDifficult = progress[word.id]?.isDifficult;
+            <div className="mt-4">
+              {showHint ? (
+                <p className="text-sm italic font-medium" style={{ color: currentWord.color, opacity: 0.7 }}>
+                  {sentenceData.translated}
+                </p>
+              ) : (
+                <button onClick={() => setShowHint(true)} className="text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto" style={{ color: currentWord.color }}>
+                  <Info size={14} /> {t("riddleHint")}
+                </button>
+              )}
+            </div>
+          </div>
 
-            const getDynamicFontSize = () => {
-                const maxFontSize = window.innerWidth < 768 ? settings.maxFontSizeMobile : settings.maxFontSizeDesktop;
-                const wordLength = word.translations[settings.learningLanguage].length;
-                let calculatedSize = maxFontSize;
-                if (wordLength > 5) calculatedSize = maxFontSize * (8 / wordLength);
-                return Math.max(settings.minFontSize, Math.min(maxFontSize, calculatedSize));
-            };
+          <div className="grid grid-cols-2 gap-3">
+            {options.map((option, i) => (
+              <button
+                key={i}
+                onClick={() => !feedback && setSelectedOption(option)}
+                className={cn(
+                  "p-5 rounded-2xl font-bold text-sm border-2 transition-all",
+                  selectedOption === option
+                    ? "bg-blue-600 text-white border-blue-600 shadow-lg"
+                    : "bg-white dark:bg-neutral-800 border-neutral-100 dark:border-neutral-700 hover:border-blue-200"
+                )}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
 
-            return (
-                <div className="w-full max-w-sm mx-auto flex flex-col gap-6">
-                    <div className="aspect-[3/4] perspective-1000 w-full h-[450px] md:h-[500px]">
-                        <motion.div 
-                            className={cn("flashcard-inner w-full h-full relative cursor-pointer", isFlipped && "flashcard-flipped")}
-                            onClick={() => setIsFlipped(!isFlipped)}
-                        >
-                            {/* Front */}
-                            <div className="flashcard-front bg-white dark:bg-neutral-800 rounded-3xl shadow-2xl border-4 border-neutral-100 dark:border-neutral-700 p-8 flex flex-col items-center justify-center text-center overflow-hidden">
-                                <div className="absolute top-6 left-6 flex items-center gap-2">
-                                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: word.color }}></div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: word.color }}>{word.type}</span>
-                                </div>
+          <div className="h-20 flex items-center justify-center">
+            {feedback ? (
+              <div
+                className={cn(
+                  "w-full py-4 rounded-2xl text-white font-black flex items-center justify-center gap-2",
+                  feedback === "correct" ? "bg-green-500" : "bg-red-500"
+                )}
+              >
+                {feedback === "correct" ? <CheckCircle /> : <AlertTriangle />}
+                {feedback === "correct" ? t("correctGuess") : t("wrongGuess")}
+              </div>
+            ) : (
+              <button
+                onClick={handleCheck}
+                disabled={!selectedOption}
+                className="w-full py-5 bg-neutral-900 dark:bg-neutral-800 text-white rounded-2xl font-black text-lg disabled:opacity-50 shadow-xl"
+              >
+                {t("checkAnswer")}
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    };
 
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); onComplete(true); }}
-                                    className="absolute top-4 right-4 w-12 h-12 flex items-center justify-center bg-white dark:bg-neutral-700 rounded-2xl shadow-lg border-2 border-neutral-100 dark:border-neutral-600 active:scale-90 transition-transform z-10"
-                                    title={t('yes')}
-                                >
-                                    <span className="text-2xl">👌</span>
-                                </button>
-                                
-                                <h2 
-                                    className="font-black tracking-tighter leading-none mb-4"
-                                    style={{ fontSize: `${getDynamicFontSize()}px`, color: word.color }}
-                                >
-                                    {word.translations[settings.learningLanguage]}
-                                </h2>
-                                
-                                <p className="font-medium italic text-sm" style={{ color: word.color, opacity: 0.7 }}>
-                                    {word.pronunciation}
-                                </p>
+    const Settings = () => {
+      const { settings, updateSettings, resetProgress } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const [localSettings, setLocalSettings] = useState(settings);
+      const [isSaved, setIsSaved] = useState(false);
 
-                                <div className="absolute bottom-8 w-full px-8">
-                                    <div className="flex items-center justify-center gap-2" style={{ color: word.color, opacity: 0.6 }}>
-                                        <RotateCcw size={14} />
-                                        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: word.color }}>{t('swipeToFlip')}</span>
-                                    </div>
-                                </div>
-                            </div>
+      const handleSave = () => {
+        updateSettings(localSettings);
+        setIsSaved(true);
+        setTimeout(() => setIsSaved(false), 1800);
+      };
 
-                            {/* Back */}
-                            <div className="flashcard-back bg-white dark:bg-neutral-800 rounded-3xl shadow-2xl border-4 text-center p-8 flex flex-col overflow-y-auto hide-scrollbar" style={{ borderColor: `${word.color}30` }}>
-                                <div className="flex justify-between items-start mb-6">
-                                    <h3 className="text-2xl font-black tracking-tight" style={{ color: word.color }}>
-                                        {word.translations[settings.nativeLanguage]}
-                                    </h3>
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); onDifficult(); }}
-                                            className={cn("p-2 rounded-xl transition-colors border-2", isDifficult ? "bg-orange-500 text-white border-orange-400" : "bg-neutral-100 text-neutral-400 border-neutral-200 dark:border-neutral-700")}
-                                        >
-                                            <AlertTriangle size={20} />
-                                        </button>
-                                        <button 
-                                            onClick={(e) => { e.stopPropagation(); onComplete(true); }}
-                                            className="w-10 h-10 flex items-center justify-center bg-white dark:bg-neutral-700 rounded-xl shadow-md border-2 active:scale-90 transition-transform"
-                                            style={{ borderColor: `${word.color}40`, color: word.color }}
-                                        >
-                                            <span className="text-xl">👌</span>
-                                        </button>
-                                    </div>
-                                </div>
+      return (
+        <div className="p-6 max-w-md mx-auto space-y-8">
+          <header className="py-8">
+            <h1 className="text-3xl font-black tracking-tight">{t("settingsTitle")}</h1>
+            <p className="text-neutral-500 font-medium">{t("settingsDesc')}</p>
+          </header>
 
-                                <div className="space-y-6 flex-1 text-left">
-                                    {['present', 'past', 'future'].map(tense => {
-                                        const sentenceData = word.sentences?.[tense];
-                                        if (!sentenceData) return null;
-                                        return (
-                                            <div key={tense} className="space-y-1">
-                                                <span className="text-[10px] font-black uppercase tracking-widest opacity-60" style={{ color: word.color }}>{t(tense)}</span>
-                                                <p className="text-sm font-bold leading-snug" style={{ color: word.color }}>
-                                                    {highlightWord(sentenceData.original, sentenceData.highlights || word.translations[settings.learningLanguage], word.color)}
-                                                </p>
-                                                <p className="text-xs italic opacity-70" style={{ color: word.color }}>
-                                                    {sentenceData.translated}
-                                                </p>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                                
-                                {/* Desktop Buttons (Hidden on Mobile) */}
-                                <div className="mt-8 hidden md:flex gap-3">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onComplete(false); }}
-                                        className="flex-1 py-4 bg-neutral-100 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300 rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-transform"
-                                    >
-                                        {t('no')}
-                                    </button>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onComplete(true); }}
-                                        className="flex-1 py-4 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-2"
-                                        style={{ backgroundColor: word.color, shadowColor: `${word.color}40` }}
-                                    >
-                                        <span className="text-lg">👌</span> {t('yes')}
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-neutral-800 p-6 rounded-3xl border border-neutral-100 dark:border-neutral-700 space-y-6">
+              <div className="space-y-4">
+                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">{t("geminiApiKey")}</label>
+                <input
+                  type="password"
+                  value={localSettings.geminiApiKey}
+                  onChange={(e) => setLocalSettings({ ...localSettings, geminiApiKey: e.target.value })}
+                  className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-100 dark:border-neutral-700 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Optional"
+                />
+                <p className="text-[10px] text-neutral-400 font-medium">{t("geminiApiKeyDesc")}</p>
+              </div>
 
-                    {/* Mobile Controls (Visible only on mobile when flipped) */}
-                    <AnimatePresence>
-                        {isFlipped && (
-                            <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 20 }}
-                                className="md:hidden flex flex-col items-center gap-4 px-4"
-                            >
-                                <div className="flex items-center justify-center gap-6 w-full">
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onComplete(false); }}
-                                        className="w-16 h-16 flex items-center justify-center bg-red-50 text-red-500 dark:bg-red-900/20 rounded-full shadow-lg active:scale-90 transition-transform border-2 border-red-100 dark:border-red-900/30"
-                                    >
-                                        <X size={28} strokeWidth={3} />
-                                    </button>
-                                    
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onComplete(true); }}
-                                        className="w-16 h-16 flex items-center justify-center bg-green-500 text-white rounded-full shadow-xl shadow-green-200 dark:shadow-none active:scale-90 transition-transform"
-                                    >
-                                        <span className="text-3xl">👌</span>
-                                    </button>
-
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); onDifficult(); }}
-                                        className={cn(
-                                            "w-16 h-16 flex items-center justify-center rounded-full shadow-lg active:scale-90 transition-transform border-2",
-                                            isDifficult ? "bg-orange-500 text-white border-orange-400" : "bg-neutral-50 dark:bg-neutral-800 text-neutral-400 border-neutral-100 dark:border-neutral-700"
-                                        )}
-                                    >
-                                        <AlertTriangle size={28} strokeWidth={3} />
-                                    </button>
-                                </div>
-                                <p className="text-[10px] font-black uppercase tracking-widest" style={{ color: word.color }}>{t('iKnowThis')}</p>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+              <div className="space-y-4">
+                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">{t("dailyNewWords")}</label>
+                <input
+                  type="range"
+                  min="3"
+                  max="12"
+                  step="1"
+                  value={localSettings.dailyNewWords}
+                  onChange={(e) => setLocalSettings({ ...localSettings, dailyNewWords: parseInt(e.target.value, 10) })}
+                  className="w-full accent-blue-600"
+                />
+                <div className="flex justify-between text-xs font-bold text-neutral-500">
+                  <span>3</span>
+                  <span className="text-blue-600">{localSettings.dailyNewWords}</span>
+                  <span>12</span>
                 </div>
-            );
-        };
+              </div>
 
-        const Layout = () => {
-            const location = useLocation();
-            const { settings, isUpdatingContent } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-
-            const navItems = [
-                { path: '/', icon: HomeIcon, label: t('home') },
-                { path: '/session', icon: BookOpen, label: t('learn') },
-                { path: '/difficult-words', icon: AlertTriangle, label: t('difficultWords') },
-                { path: '/test', icon: BrainCircuit, label: t('test') },
-                { path: '/learned', icon: CheckCircle, label: t('learned') },
-                { path: '/settings', icon: SettingsIcon, label: t('settings') },
-            ];
-
-            return (
-                <div className="flex flex-col h-screen bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 overflow-hidden">
-                    <AnimatePresence>
-                        {isUpdatingContent && (
-                            <motion.div
-                                initial={{ y: -50, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: -50, opacity: 0 }}
-                                className="fixed top-0 left-0 right-0 z-[100] bg-blue-600 text-white py-2 px-4 flex items-center justify-center gap-3 shadow-lg"
-                            >
-                                <Loader2 size={16} className="animate-spin" />
-                                <span className="text-xs font-black uppercase tracking-widest">AI is generating content...</span>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <main className="flex-1 overflow-y-auto pb-24">
-                        <Outlet />
-                    </main>
-                    
-                    <nav className="fixed bottom-0 w-full bg-white/80 dark:bg-neutral-950/80 backdrop-blur-lg border-t border-neutral-200 dark:border-neutral-800 px-1 py-2 pb-safe z-50">
-                        <div className="flex justify-around items-center max-w-screen-xl mx-auto">
-                            {navItems.map((item) => {
-                                const isActive = location.pathname === item.path;
-                                const Icon = item.icon;
-                                return (
-                                    <Link
-                                        key={item.path}
-                                        to={item.path}
-                                        className={cn(
-                                            "flex flex-col items-center gap-0.5 p-1.5 rounded-xl transition-all duration-200 flex-1 min-w-0 max-w-[80px]",
-                                            isActive ? "text-blue-600 dark:text-blue-400 scale-110" : "text-neutral-400 dark:text-neutral-500"
-                                        )}
-                                    >
-                                        <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                                        <span className={cn(
-                                            "text-[9px] font-bold uppercase tracking-tighter whitespace-nowrap overflow-hidden text-ellipsis w-full text-center",
-                                            isActive ? "opacity-100" : "opacity-70"
-                                        )}>
-                                            {item.label}
-                                        </span>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    </nav>
+              <div className="space-y-4">
+                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">{t("targetRepetitions")}</label>
+                <input
+                  type="range"
+                  min="3"
+                  max="10"
+                  step="1"
+                  value={localSettings.targetRepetitions}
+                  onChange={(e) => setLocalSettings({ ...localSettings, targetRepetitions: parseInt(e.target.value, 10) })}
+                  className="w-full accent-blue-600"
+                />
+                <div className="flex justify-between text-xs font-bold text-neutral-500">
+                  <span>3</span>
+                  <span className="text-blue-600">{localSettings.targetRepetitions}</span>
+                  <span>10</span>
                 </div>
-            );
-        };
+              </div>
 
-        // --- PAGES ---
+              <div className="space-y-4">
+                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">Tema</label>
+                <button
+                  onClick={() => setLocalSettings({ ...localSettings, darkMode: !localSettings.darkMode })}
+                  className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-100 dark:border-neutral-700 text-left font-bold"
+                >
+                  {localSettings.darkMode ? "Koyu" : "Açık"}
+                </button>
+              </div>
+            </div>
 
-        const Home = () => {
-            const { user, settings, progress, customWords, generateSession } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const navigate = useNavigate();
+            <button
+              onClick={handleSave}
+              className={cn(
+                "w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2",
+                isSaved ? "bg-green-500 text-white" : "bg-blue-600 text-white"
+              )}
+            >
+              {isSaved ? <CheckCircle /> : <Save />}
+              {isSaved ? t("autoSaved") : t("saveSettings")}
+            </button>
 
-            if (!user) return <Navigate to="/welcome" />;
+            <button
+              onClick={() => {
+                if (confirm(t("confirmDeleteAll"))) resetProgress();
+              }}
+              className="w-full py-4 text-red-500 font-black text-sm flex items-center justify-center gap-2"
+            >
+              <Trash2 size={18} />
+              {t("resetProgress")}
+            </button>
+          </div>
+        </div>
+      );
+    };
 
-            const learnedCount = Object.values(progress).filter(p => p.isLearned).length;
-            const difficultCount = Object.values(progress).filter(p => p.isDifficult).length;
-            
-            const yearlyGoal = 7200;
-            const yearlyProgress = Math.min(100, (learnedCount / yearlyGoal) * 100);
+    const Learned = () => {
+      const { progress, customWords, settings, toggleDifficult } = useStore();
+      const t = useTranslation(settings.nativeLanguage);
+      const allWords = [...sampleWords, ...customWords];
+      const learnedWords = allWords.filter((w) => progress[w.id]?.isLearned);
 
-            return (
-                <div className="p-6 space-y-8 max-w-md mx-auto">
-                    <header className="py-8">
-                        <h1 className="text-4xl font-black tracking-tighter text-neutral-900 dark:text-white">
-                            {t('greeting')}, {user.name}!
-                        </h1>
-                        <p className="text-neutral-500 dark:text-neutral-400 font-medium mt-1">
-                            {t('readyToLearn')}
-                        </p>
-                    </header>
+      return (
+        <div className="p-6 max-w-md mx-auto space-y-8">
+          <header className="py-8">
+            <h1 className="text-3xl font-black tracking-tight">{t("learnedWordsTitle")}</h1>
+            <p className="text-neutral-500 font-medium">{t("learnedWordsDesc", { count: learnedWords.length })}</p>
+          </header>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-600 p-6 rounded-[32px] text-white shadow-xl shadow-blue-200 dark:shadow-none col-span-2">
-                            <div className="flex justify-between items-start mb-4">
-                                <div className="p-3 bg-white/20 rounded-2xl">
-                                    <Star size={24} fill="currentColor" />
-                                </div>
-                                <span className="text-[10px] font-black uppercase tracking-widest bg-white/20 px-3 py-1 rounded-full">
-                                    {settings.level}
-                                </span>
-                            </div>
-                            <h3 className="text-xl font-black mb-1">{t('todaysGoal')}</h3>
-                            <p className="text-blue-100 text-sm font-medium mb-6">
-                                {settings.dailyNewWords} {t('words')} • {settings.targetRepetitions} {t('totalReps')}
-                            </p>
-                            <button 
-                                onClick={() => { generateSession(); navigate('/session'); }}
-                                className="w-full py-4 bg-white text-blue-600 rounded-2xl font-black text-sm active:scale-95 transition-transform"
-                            >
-                                {t('startTodaysSession')}
-                            </button>
-                        </div>
-
-                        <div className="bg-white dark:bg-neutral-800 p-6 rounded-[32px] border border-neutral-100 dark:border-neutral-700 col-span-2 shadow-sm">
-                            <div className="flex justify-between items-center mb-4">
-                                <h4 className="font-black text-neutral-900 dark:text-white uppercase tracking-widest text-xs">{t('yearlyProgress')}</h4>
-                                <span className="text-blue-600 font-black text-lg">{learnedCount} / {yearlyGoal}</span>
-                            </div>
-                            <div className="w-full h-4 bg-neutral-100 dark:bg-neutral-700 rounded-full overflow-hidden">
-                                <motion.div 
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${yearlyProgress}%` }}
-                                    className="h-full bg-blue-600 rounded-full"
-                                />
-                            </div>
-                            <p className="text-[10px] text-neutral-400 font-bold mt-2 uppercase tracking-widest">
-                                %{yearlyProgress.toFixed(1)} {t('completed')}
-                            </p>
-                        </div>
-
-                        <Link to="/learned" className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-                            <CheckCircle className="text-green-500 mb-3" size={24} />
-                            <h4 className="font-black text-neutral-900 dark:text-white">{t('learned')}</h4>
-                            <p className="text-2xl font-black text-neutral-900 dark:text-white">{learnedCount}</p>
-                        </Link>
-
-                        <Link to="/difficult-words" className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 shadow-sm">
-                            <AlertTriangle className="text-orange-500 mb-3" size={24} />
-                            <h4 className="font-black text-neutral-900 dark:text-white">{t('difficultWords')}</h4>
-                            <p className="text-2xl font-black text-neutral-900 dark:text-white">{difficultCount}</p>
-                        </Link>
-                    </div>
+          <div className="space-y-3">
+            {learnedWords.length > 0 ? (
+              learnedWords.map((word) => (
+                <div key={word.id} className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-black uppercase tracking-tight" style={{ color: word.color }}>
+                      {word.translations[settings.learningLanguage]}
+                    </h3>
+                    <p className="font-bold" style={{ color: word.color, opacity: 0.6 }}>
+                      {word.translations[settings.nativeLanguage]}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => toggleDifficult(word.id)}
+                    className={cn("p-2 rounded-xl", progress[word.id]?.isDifficult ? "text-orange-500" : "text-neutral-300")}
+                  >
+                    <AlertTriangle size={20} />
+                  </button>
                 </div>
-            );
-        };
+              ))
+            ) : (
+              <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-700">
+                <p className="text-neutral-400 font-medium">{t("noWordsLearned")}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    };
 
-        const Welcome = () => {
-            const { setUser, settings, updateSettings } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const navigate = useNavigate();
-            const [name, setName] = useState('');
+    const App = () => {
+      const { settings } = useStore();
 
-            const handleStart = () => {
-                if (name.trim()) {
-                    setUser({ name });
-                    navigate('/');
-                }
-            };
+      useEffect(() => {
+        if (settings.darkMode) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      }, [settings.darkMode]);
 
-            return (
-                <div className="min-h-screen bg-blue-600 flex flex-col items-center justify-center p-8 text-white">
-                    <motion.div 
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="w-full max-w-sm space-y-8 text-center"
-                    >
-                        <div className="w-24 h-24 bg-white/20 rounded-[32px] flex items-center justify-center mx-auto mb-8">
-                            <Languages size={48} />
-                        </div>
-                        <h1 className="text-4xl font-black tracking-tighter">{t('welcomeTitle')}</h1>
-                        <p className="text-blue-100 font-medium">{t('welcomeDesc')}</p>
-                        
-                        <div className="space-y-4 pt-8">
-                            <input 
-                                type="text" 
-                                placeholder={t('yourName')}
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full px-6 py-5 bg-white/10 border-2 border-white/20 rounded-2xl text-white placeholder:text-white/50 font-bold focus:outline-none focus:border-white/50 transition-colors"
-                            />
-                            <button 
-                                onClick={handleStart}
-                                className="w-full py-5 bg-white text-blue-600 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-transform"
-                            >
-                                {t('startLearning')}
-                            </button>
-                        </div>
-                    </motion.div>
-                </div>
-            );
-        };
+      return (
+        <HashRouter>
+          <Routes>
+            <Route path="/welcome" element={<Welcome />} />
+            <Route element={<Layout />}>
+              <Route path="/" element={<Home />} />
+              <Route path="/session" element={<Session />} />
+              <Route path="/difficult-words" element={<DifficultWords />} />
+              <Route path="/learned" element={<Learned />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/test" element={<Test />} />
+            </Route>
+          </Routes>
+        </HashRouter>
+      );
+    };
 
-        const Session = () => {
-            const { sessionWords, updateProgress, toggleDifficult, settings } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const navigate = useNavigate();
-            const [currentIndex, setCurrentIndex] = useState(0);
-
-            if (sessionWords.length === 0) {
-                return (
-                    <div className="p-6 flex flex-col items-center justify-center h-full text-center space-y-4">
-                        <div className="p-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full">
-                            <CheckCircle size={48} />
-                        </div>
-                        <h2 className="text-2xl font-black">{t('allDone')}</h2>
-                        <p className="text-neutral-500 max-w-xs">{t('allDoneDesc')}</p>
-                        <button onClick={() => navigate('/')} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black">
-                            {t('backToHome')}
-                        </button>
-                    </div>
-                );
-            }
-
-            const currentWord = sessionWords[currentIndex];
-
-            const handleComplete = (learned) => {
-                updateProgress(currentWord.id, learned);
-                if (currentIndex < sessionWords.length - 1) {
-                    setCurrentIndex(currentIndex + 1);
-                } else {
-                    navigate('/');
-                }
-            };
-
-            return (
-                <div className="p-6 h-full flex flex-col">
-                    <header className="flex justify-between items-center mb-8">
-                        <button onClick={() => navigate('/')} className="p-2 text-neutral-400"><X /></button>
-                        <div className="flex gap-1">
-                            {sessionWords.map((_, i) => (
-                                <div key={i} className={cn("h-1.5 w-6 rounded-full transition-colors", i <= currentIndex ? "bg-blue-600" : "bg-neutral-200 dark:bg-neutral-700")}></div>
-                            ))}
-                        </div>
-                        <div className="w-10"></div>
-                    </header>
-                    <div className="flex-1 flex items-center justify-center">
-                        <Flashcard 
-                            word={currentWord} 
-                            onComplete={handleComplete}
-                            onDifficult={() => toggleDifficult(currentWord.id)}
-                        />
-                    </div>
-                </div>
-            );
-        };
-
-        const DifficultWords = () => {
-            const { progress, settings, toggleDifficult, customWords, generateDifficultSession } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const navigate = useNavigate();
-            const [searchQuery, setSearchQuery] = useState('');
-
-            const difficultWords = customWords.filter(w => progress[w.id]?.isDifficult);
-            const filteredWords = searchQuery.trim() ? customWords.filter(w => 
-                w.translations[settings.learningLanguage].toLowerCase().includes(searchQuery.toLowerCase()) ||
-                w.translations[settings.nativeLanguage].toLowerCase().includes(searchQuery.toLowerCase())
-            ).slice(0, 5) : [];
-
-            return (
-                <div className="p-6 max-w-md mx-auto space-y-8">
-                    <header className="py-8">
-                        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
-                            <AlertTriangle size={32} className="text-orange-500" />
-                            {t('difficultWords')}
-                        </h1>
-                    </header>
-
-                    <div className="space-y-4">
-                        <div className="relative">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
-                            <input
-                                type="text"
-                                placeholder={t('searchWords')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-4 bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-100 dark:border-neutral-700 shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                            />
-                        </div>
-
-                        {searchQuery && (
-                            <div className="space-y-2">
-                                {filteredWords.map(word => (
-                                    <div key={word.id} className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
-                                        <div>
-                                            <p className="font-black uppercase tracking-tight" style={{ color: word.color }}>{word.translations[settings.learningLanguage]}</p>
-                                            <p className="text-xs font-bold" style={{ color: word.color, opacity: 0.6 }}>{word.translations[settings.nativeLanguage]}</p>
-                                        </div>
-                                        <button onClick={() => toggleDifficult(word.id)} className={cn("p-2 rounded-xl", progress[word.id]?.isDifficult ? "bg-red-100 text-red-600" : "bg-neutral-100 text-neutral-400")}>
-                                            {progress[word.id]?.isDifficult ? <X size={20} /> : <Plus size={20} />}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-black text-neutral-400 uppercase tracking-widest">{t('difficultWords')} ({difficultWords.length})</h3>
-                        {difficultWords.length > 0 ? (
-                            <div className="space-y-3">
-                                <button 
-                                    onClick={() => { generateDifficultSession(); navigate('/session'); }}
-                                    className="w-full py-4 bg-orange-500 text-white rounded-2xl font-black flex items-center justify-center gap-2"
-                                >
-                                    <Play size={20} fill="currentColor" />
-                                    {t('startReview')}
-                                </button>
-                                {difficultWords.map(word => (
-                                    <div key={word.id} className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
-                                        <div>
-                                            <h3 className="text-lg font-black uppercase tracking-tight" style={{ color: word.color }}>{word.translations[settings.learningLanguage]}</h3>
-                                            <p className="font-bold" style={{ color: word.color, opacity: 0.6 }}>{word.translations[settings.nativeLanguage]}</p>
-                                        </div>
-                                        <button onClick={() => toggleDifficult(word.id)} className="p-3 text-red-500"><X size={20} /></button>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-700">
-                                <p className="text-neutral-400 font-medium">{t('noDifficultWords')}</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        const Test = () => {
-            const { settings, progress, customWords, toggleDifficult } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const navigate = useNavigate();
-
-            const learnedWords = customWords.filter(w => progress[w.id]?.isLearned);
-            const isTestUnlocked = learnedWords.length >= 10;
-            const maxRounds = Math.min(learnedWords.length, settings.testSize || 10);
-
-            const [gamePhase, setGamePhase] = useState(isTestUnlocked ? 'playing' : 'locked');
-            const [currentIndex, setCurrentIndex] = useState(0);
-            const [score, setScore] = useState(0);
-            const [wrongCount, setWrongCount] = useState(0);
-            const [testWords, setTestWords] = useState([]);
-            const [options, setOptions] = useState([]);
-            const [selectedOption, setSelectedOption] = useState(null);
-            const [feedback, setFeedback] = useState(null);
-            const [currentTense, setCurrentTense] = useState('present');
-            const [showHint, setShowHint] = useState(false);
-            const [audioUrl, setAudioUrl] = useState(null);
-
-            const playAudio = () => {
-                if (audioUrl) {
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-                }
-            };
-
-            useEffect(() => {
-                if (isTestUnlocked && gamePhase === 'playing' && testWords.length === 0) {
-                    const shuffled = [...learnedWords].sort(() => 0.5 - Math.random());
-                    setTestWords(shuffled.slice(0, maxRounds));
-                }
-            }, [isTestUnlocked, gamePhase, learnedWords, maxRounds]);
-
-            useEffect(() => {
-                if (testWords.length > 0 && currentIndex < testWords.length) {
-                    const currentWord = testWords[currentIndex];
-                    const tenses = ['present', 'past', 'future'];
-                    const randomTense = tenses[Math.floor(Math.random() * tenses.length)];
-                    setCurrentTense(randomTense);
-                    setShowHint(false);
-                    setAudioUrl(null);
-
-                    // Generate audio
-                    generateAudio(currentWord.translations[settings.learningLanguage], settings.learningLanguage, settings.geminiApiKey)
-                        .then(url => setAudioUrl(url));
-
-                    const correctAnswer = currentWord.translations[settings.learningLanguage];
-                    const otherWords = customWords.filter(w => w.id !== currentWord.id);
-                    const randomOthers = otherWords
-                        .sort(() => 0.5 - Math.random())
-                        .slice(0, 3)
-                        .map(w => w.translations[settings.learningLanguage]);
-                    
-                    while (randomOthers.length < 3) {
-                        randomOthers.push(`Option ${randomOthers.length + 1}`);
-                    }
-
-                    setOptions([...randomOthers, correctAnswer].sort(() => 0.5 - Math.random()));
-                    setSelectedOption(null);
-                    setFeedback(null);
-                }
-            }, [currentIndex, testWords, settings]);
-
-            const handleCheck = () => {
-                if (!selectedOption) return;
-                const currentWord = testWords[currentIndex];
-                const isCorrect = selectedOption === currentWord.translations[settings.learningLanguage];
-
-                if (isCorrect) {
-                    setScore(score + 1);
-                    setFeedback('correct');
-                } else {
-                    setWrongCount(wrongCount + 1);
-                    setFeedback('wrong');
-                    toggleDifficult(currentWord.id);
-                }
-
-                setTimeout(() => {
-                    if (currentIndex < testWords.length - 1) {
-                        setCurrentIndex(currentIndex + 1);
-                    } else {
-                        setGamePhase('finished');
-                    }
-                }, 2000);
-            };
-
-            if (gamePhase === 'locked') {
-                return (
-                    <div className="p-12 text-center space-y-6">
-                        <div className="w-20 h-20 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto">
-                            <AlertTriangle size={40} />
-                        </div>
-                        <h2 className="text-2xl font-black">{t('testLockMessage')}</h2>
-                        <button onClick={() => navigate('/')} className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black">
-                            {t('backToHome')}
-                        </button>
-                    </div>
-                );
-            }
-
-            if (gamePhase === 'finished') {
-                return (
-                    <div className="p-8 text-center space-y-8">
-                        <div className="w-24 h-24 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto">
-                            <Trophy size={48} />
-                        </div>
-                        <h2 className="text-3xl font-black">{t('testComplete')}</h2>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
-                                <p className="text-[10px] font-black uppercase text-neutral-400">{t('score')}</p>
-                                <p className="text-2xl font-black text-blue-600">{score}</p>
-                            </div>
-                            <div className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
-                                <p className="text-[10px] font-black uppercase text-neutral-400">Hata</p>
-                                <p className="text-2xl font-black text-red-500">{wrongCount}</p>
-                            </div>
-                            <div className="bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
-                                <p className="text-[10px] font-black uppercase text-neutral-400">Başarı</p>
-                                <p className="text-2xl font-black text-green-500">%{Math.round((score/maxRounds)*100)}</p>
-                            </div>
-                        </div>
-                        <button onClick={() => navigate('/')} className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-lg">
-                            {t('backToHome')}
-                        </button>
-                    </div>
-                );
-            }
-
-            const currentWord = testWords[currentIndex];
-            if (!currentWord) return <div className="p-12 text-center"><Loader2 className="animate-spin mx-auto" /></div>;
-
-            const sentenceData = currentWord.sentences?.[currentTense] || { blank: "_____", translated: "No hint available" };
-
-            return (
-                <div className="p-6 max-w-md mx-auto space-y-6">
-                    <div className="flex justify-between items-center bg-white dark:bg-neutral-800 p-4 rounded-2xl border border-neutral-100 dark:border-neutral-700">
-                        <span className="font-black text-xs uppercase tracking-widest text-neutral-400">{currentIndex + 1} / {maxRounds}</span>
-                        <div className="flex gap-4">
-                            <span className="text-green-500 font-black">✓ {score}</span>
-                            <span className="text-red-500 font-black">✗ {wrongCount}</span>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-neutral-800 p-8 rounded-[40px] border-4 text-center shadow-xl relative overflow-hidden" style={{ borderColor: currentWord.color }}>
-                        <div className="absolute top-4 left-4 flex gap-2">
-                            <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase" style={{ backgroundColor: `${currentWord.color}20`, color: currentWord.color }}>
-                                {t(currentTense)}
-                            </span>
-                            {audioUrl && (
-                                <button onClick={playAudio} className="p-1 rounded-full" style={{ backgroundColor: `${currentWord.color}10`, color: currentWord.color }}>
-                                    <Volume2 size={16} />
-                                </button>
-                            )}
-                        </div>
-                        
-                        <div className="py-8">
-                            <h2 className="text-2xl font-black leading-relaxed tracking-tight" style={{ color: currentWord.color }}>
-                                {sentenceData.blank || "_____"}
-                            </h2>
-                        </div>
-
-                        <div className="mt-4">
-                            {showHint ? (
-                                <p className="text-sm italic font-medium animate-in fade-in slide-in-from-bottom-2" style={{ color: currentWord.color, opacity: 0.7 }}>
-                                    {sentenceData.translated}
-                                </p>
-                            ) : (
-                                <button onClick={() => setShowHint(true)} className="text-xs font-black uppercase tracking-widest flex items-center justify-center gap-1 mx-auto" style={{ color: currentWord.color }}>
-                                    <Info size={14} /> {t('riddleHint')}
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        {options.map((option, i) => (
-                            <button 
-                                key={i}
-                                onClick={() => !feedback && setSelectedOption(option)}
-                                className={cn(
-                                    "p-5 rounded-2xl font-bold text-sm border-2 transition-all",
-                                    selectedOption === option ? "bg-blue-600 text-white border-blue-600 shadow-lg shadow-blue-200" : "bg-white dark:bg-neutral-800 border-neutral-100 dark:border-neutral-700 hover:border-blue-200"
-                                )}
-                            >
-                                {option}
-                            </button>
-                        ))}
-                    </div>
-
-                    <div className="h-20 flex items-center justify-center">
-                        {feedback ? (
-                            <motion.div 
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                className={cn("w-full py-4 rounded-2xl text-white font-black flex items-center justify-center gap-2", feedback === 'correct' ? "bg-green-500" : "bg-red-500")}
-                            >
-                                {feedback === 'correct' ? <CheckCircle /> : <AlertTriangle />}
-                                {feedback === 'correct' ? t('correctGuess') : t('wrongGuess')}
-                            </motion.div>
-                        ) : (
-                            <button 
-                                onClick={handleCheck}
-                                disabled={!selectedOption}
-                                className="w-full py-5 bg-neutral-900 dark:bg-neutral-800 text-white rounded-2xl font-black text-lg disabled:opacity-50 shadow-xl"
-                            >
-                                {t('checkAnswer')}
-                            </button>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        const Settings = () => {
-            const { settings, updateSettings, resetProgress } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const [localSettings, setLocalSettings] = useState(settings);
-            const [isSaved, setIsSaved] = useState(false);
-
-            const handleSave = () => {
-                updateSettings(localSettings);
-                setIsSaved(true);
-                setTimeout(() => setIsSaved(false), 2000);
-            };
-
-            return (
-                <div className="p-6 max-w-md mx-auto space-y-8">
-                    <header className="py-8">
-                        <h1 className="text-3xl font-black tracking-tight">{t('settingsTitle')}</h1>
-                        <p className="text-neutral-500 font-medium">{t('settingsDesc')}</p>
-                    </header>
-
-                    <div className="space-y-6">
-                        <div className="bg-white dark:bg-neutral-800 p-6 rounded-3xl border border-neutral-100 dark:border-neutral-700 space-y-6">
-                            <div className="space-y-4">
-                                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">{t('geminiApiKey')}</label>
-                                <input 
-                                    type="password" 
-                                    value={localSettings.geminiApiKey}
-                                    onChange={(e) => setLocalSettings({ ...localSettings, geminiApiKey: e.target.value })}
-                                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-900 rounded-xl border border-neutral-100 dark:border-neutral-700 focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="AI features require an API key..."
-                                />
-                                <p className="text-[10px] text-neutral-400 font-medium">{t('geminiApiKeyDesc')}</p>
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">{t('dailyNewWords')}</label>
-                                <input 
-                                    type="range" min="3" max="50" step="1"
-                                    value={localSettings.dailyNewWords}
-                                    onChange={(e) => setLocalSettings({ ...localSettings, dailyNewWords: parseInt(e.target.value) })}
-                                    className="w-full accent-blue-600"
-                                />
-                                <div className="flex justify-between text-xs font-bold text-neutral-500">
-                                    <span>3</span>
-                                    <span className="text-blue-600">{localSettings.dailyNewWords}</span>
-                                    <span>50</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="block text-sm font-black uppercase tracking-widest text-neutral-400">{t('targetRepetitions')}</label>
-                                <input 
-                                    type="range" min="3" max="15" step="1"
-                                    value={localSettings.targetRepetitions}
-                                    onChange={(e) => setLocalSettings({ ...localSettings, targetRepetitions: parseInt(e.target.value) })}
-                                    className="w-full accent-blue-600"
-                                />
-                                <div className="flex justify-between text-xs font-bold text-neutral-500">
-                                    <span>3</span>
-                                    <span className="text-blue-600">{localSettings.targetRepetitions}</span>
-                                    <span>15</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button 
-                            onClick={handleSave}
-                            className={cn(
-                                "w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2",
-                                isSaved ? "bg-green-500 text-white" : "bg-blue-600 text-white"
-                            )}
-                        >
-                            {isSaved ? <CheckCircle /> : <Save />}
-                            {isSaved ? t('autoSaved') : t('saveSettings')}
-                        </button>
-
-                        <button 
-                            onClick={() => { if(confirm(t('confirmDeleteAll'))) resetProgress(); }}
-                            className="w-full py-4 text-red-500 font-black text-sm flex items-center justify-center gap-2"
-                        >
-                            <Trash2 size={18} />
-                            {t('resetProgress')}
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        const Learned = () => {
-            const { progress, customWords, settings, toggleDifficult } = useStore();
-            const t = useTranslation(settings.nativeLanguage);
-            const learnedWords = customWords.filter(w => progress[w.id]?.isLearned);
-
-            return (
-                <div className="p-6 max-w-md mx-auto space-y-8">
-                    <header className="py-8">
-                        <h1 className="text-3xl font-black tracking-tight">{t('learnedWordsTitle')}</h1>
-                        <p className="text-neutral-500 font-medium">{t('learnedWordsDesc', { count: learnedWords.length })}</p>
-                    </header>
-
-                    <div className="space-y-3">
-                        {learnedWords.length > 0 ? (
-                            learnedWords.map(word => (
-                                <div key={word.id} className="bg-white dark:bg-neutral-800 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-700 flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-lg font-black uppercase tracking-tight" style={{ color: word.color }}>{word.translations[settings.learningLanguage]}</h3>
-                                        <p className="font-bold" style={{ color: word.color, opacity: 0.6 }}>{word.translations[settings.nativeLanguage]}</p>
-                                    </div>
-                                    <button onClick={() => toggleDifficult(word.id)} className={cn("p-2 rounded-xl", progress[word.id]?.isDifficult ? "text-orange-500" : "text-neutral-300")}>
-                                        <AlertTriangle size={20} />
-                                    </button>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="text-center py-12 bg-white dark:bg-neutral-800 rounded-3xl border border-dashed border-neutral-200 dark:border-neutral-700">
-                                <p className="text-neutral-400 font-medium">{t('noWordsLearned')}</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        const App = () => {
-            const { settings } = useStore();
-            
-            useEffect(() => {
-                if (settings.darkMode) {
-                    document.documentElement.classList.add('dark');
-                } else {
-                    document.documentElement.classList.remove('dark');
-                }
-            }, [settings.darkMode]);
-
-            return (
-                <HashRouter>
-                    <Routes>
-                        <Route path="/welcome" element={<Welcome />} />
-                        <Route element={<Layout />}>
-                            <Route path="/" element={<Home />} />
-                            <Route path="/session" element={<Session />} />
-                            <Route path="/difficult-words" element={<DifficultWords />} />
-                            <Route path="/learned" element={<Learned />} />
-                            <Route path="/settings" element={<Settings />} />
-                            <Route path="/test" element={<Test />} />
-                        </Route>
-                    </Routes>
-                </HashRouter>
-            );
-        };
-
-        const root = createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
+    const root = createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
 </body>
 </html>
